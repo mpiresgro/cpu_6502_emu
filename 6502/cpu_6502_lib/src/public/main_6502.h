@@ -41,7 +41,7 @@ struct Mem
         return Data[Address];
     }
 
-    void WriteWord(Word Value, u32 Address, u32 &Cycles)
+    void WriteWord(Word Value, u32 Address, s32 &Cycles)
     {
         // Write two bytes
         assert(Address + 1 < MAX_MEM);
@@ -79,7 +79,7 @@ struct CPU
         memory.Init();
     }
 
-    Byte Fetch_Byte(u32 &Cycles, Mem &memory)
+    Byte Fetch_Byte(s32 &Cycles, Mem &memory)
     {
         Byte Data = memory[PC];
         PC++;
@@ -87,7 +87,7 @@ struct CPU
         return Data;
     }
 
-    Word Fetch_Word(u32 &Cycles, Mem &memory)
+    Word Fetch_Word(s32 &Cycles, Mem &memory)
     {
         // cpu 6502 -> little endian
         Word Data = memory[PC];
@@ -100,7 +100,7 @@ struct CPU
         return Data;
     }
 
-    Byte ReadByte(u32 &Cycles, Mem &memory, Byte Address)
+    Byte ReadByte(s32 &Cycles, Mem &memory, Byte Address)
     {
         Byte Data = memory[Address];
         Cycles--;
@@ -120,9 +120,9 @@ struct CPU
         INS_LDA_ZEROP_X = 0xB5, // Load Accumulator Zero Page X Mode
         INS_JSR = 0x20;         // Jump to Subroutine
 
-    s32 Execute(u32 Cycles, Mem &memory)
+    s32 Execute(s32 Cycles, Mem &memory)
     {
-        s32 CyclesRequested = Cycles;
+        const s32 CyclesRequested = Cycles;
         while (Cycles > 0)
         {
             Byte Instruction = Fetch_Byte(Cycles, memory);
