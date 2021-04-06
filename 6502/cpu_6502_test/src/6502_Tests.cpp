@@ -17,6 +17,15 @@ public:
     }
 };
 
+static void VerifyNotAffectedFlags(CPU &cpu, CPU &cpuCopy){
+    // not affected by LDA
+    EXPECT_EQ(cpu.C, cpuCopy.C);
+    EXPECT_EQ(cpu.I, cpuCopy.I);
+    EXPECT_EQ(cpu.D, cpuCopy.D);
+    EXPECT_EQ(cpu.B, cpuCopy.B);
+    EXPECT_EQ(cpu.V, cpuCopy.V);
+}
+
 TEST_F(CPU6502Test1, LDAImmediateLoadValue)
 {
     // Given:
@@ -29,12 +38,7 @@ TEST_F(CPU6502Test1, LDAImmediateLoadValue)
     EXPECT_EQ(cpu.A, 0x84);
     EXPECT_EQ(CyclesUsed, 2);
     EXPECT_TRUE(cpu.N);
-    // not affected by LDA
-    EXPECT_EQ(cpu.C, cpuCopy.C);
-    EXPECT_EQ(cpu.I, cpuCopy.I);
-    EXPECT_EQ(cpu.D, cpuCopy.D);
-    EXPECT_EQ(cpu.B, cpuCopy.B);
-    EXPECT_EQ(cpu.V, cpuCopy.V);
+    VerifyNotAffectedFlags(cpu, cpuCopy); 
 }
 
 TEST_F(CPU6502Test1, LDAZeroPageLoadValue)
@@ -50,12 +54,7 @@ TEST_F(CPU6502Test1, LDAZeroPageLoadValue)
     EXPECT_EQ(cpu.A, 0x84);
     EXPECT_EQ(CyclesUsed, 3);
     EXPECT_TRUE(cpu.N);
-    // not affected by LDA
-    EXPECT_EQ(cpu.C, cpuCopy.C);
-    EXPECT_EQ(cpu.I, cpuCopy.I);
-    EXPECT_EQ(cpu.D, cpuCopy.D);
-    EXPECT_EQ(cpu.B, cpuCopy.B);
-    EXPECT_EQ(cpu.V, cpuCopy.V);
+    VerifyNotAffectedFlags(cpu, cpuCopy); 
 }
 
 TEST_F(CPU6502Test1, LDAZeroPageXLoadValue)
@@ -73,12 +72,7 @@ TEST_F(CPU6502Test1, LDAZeroPageXLoadValue)
     EXPECT_EQ(cpu.A, 0x84);
     EXPECT_EQ(CyclesUsed, 4);
     EXPECT_TRUE(cpu.N);
-    // not affected by LDA
-    EXPECT_EQ(cpu.C, cpuCopy.C);
-    EXPECT_EQ(cpu.I, cpuCopy.I);
-    EXPECT_EQ(cpu.D, cpuCopy.D);
-    EXPECT_EQ(cpu.B, cpuCopy.B);
-    EXPECT_EQ(cpu.V, cpuCopy.V);
+    VerifyNotAffectedFlags(cpu, cpuCopy); 
 }
 
 TEST_F(CPU6502Test1, LDAZeroPageXLoadValueWhenWraps)
@@ -99,10 +93,5 @@ TEST_F(CPU6502Test1, LDAZeroPageXLoadValueWhenWraps)
     EXPECT_EQ(cpu.A, 0x84);
     EXPECT_EQ(CyclesUsed, 4);
     EXPECT_TRUE(cpu.N);
-    // not affected by LDA
-    EXPECT_EQ(cpu.C, cpuCopy.C);
-    EXPECT_EQ(cpu.I, cpuCopy.I);
-    EXPECT_EQ(cpu.D, cpuCopy.D);
-    EXPECT_EQ(cpu.B, cpuCopy.B);
-    EXPECT_EQ(cpu.V, cpuCopy.V);
+    VerifyNotAffectedFlags(cpu, cpuCopy); 
 }
