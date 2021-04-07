@@ -19,6 +19,13 @@ public:
     }
 
     void LoadRegisterImmediateValue(Byte Instruction, Byte CPU::*RegisterToCheck);
+    void LoadRegisterZeroPage(Byte Instruction, Byte CPU::*RegisterToCheck);
+    void LoadRegisterZeroPageX(Byte Instruction, Byte CPU::*RegisterToCheck);
+    void LoadRegisterAbsolute(Byte Instruction, Byte CPU::*RegisterToCheck);
+    void LoadRegisterAbsoluteX(Byte Instruction, Byte CPU::*RegisterToCheck);
+    void LoadRegisterAbsoluteXCrossingPage(Byte Instruction, Byte CPU::*RegisterToCheck);
+    void LoadRegisterAbsoluteY(Byte Instruction, Byte CPU::*RegisterToCheck);
+    void LoadRegisterAbsoluteYCrossingPage(Byte Instruction, Byte CPU::*RegisterToCheck);
 };
 
 static void VerifyNotAffectedFlags(cpu6502::CPU &cpu, cpu6502::CPU &cpuCopy)
@@ -33,7 +40,6 @@ static void VerifyNotAffectedFlags(cpu6502::CPU &cpu, cpu6502::CPU &cpuCopy)
 
 void CPU6502LoadRegisterTests::LoadRegisterImmediateValue(Byte Instruction, Byte CPU::*RegisterToCheck)
 {
-
     // Given:
     mem[0xFFFC] = Instruction;
     mem[0xFFFD] = 0x84;
@@ -47,15 +53,136 @@ void CPU6502LoadRegisterTests::LoadRegisterImmediateValue(Byte Instruction, Byte
     VerifyNotAffectedFlags(cpu, cpuCopy);
 }
 
-
-TEST_F(CPU6502LoadRegisterTests, CPUKeepsStateWithZeroCyles)
+void CPU6502LoadRegisterTests::LoadRegisterZeroPage(Byte Instruction, Byte CPU::*RegisterToCheck)
 {
-    // Given
-    constexpr s32 NUM_OF_CYCLES = 0;
+    // Given:
+    mem[0xFFFC] = Instruction;
+    mem[0xFFFD] = 0x22;
+    mem[0x0022] = 0x84;
+    CPU cpuCopy = cpu;
     // When:
-    s32 CyclesUsed = cpu.Execute(NUM_OF_CYCLES, mem);
-    // Then
-    EXPECT_EQ(CyclesUsed, 0);
+    s32 CyclesUsed = cpu.Execute(3, mem);
+    // Then:
+    EXPECT_EQ(cpu.*RegisterToCheck, 0x84);
+    EXPECT_EQ(CyclesUsed, 3);
+    EXPECT_TRUE(cpu.N);
+    VerifyNotAffectedFlags(cpu, cpuCopy);
+}
+
+void CPU6502LoadRegisterTests::LoadRegisterZeroPageX(Byte Instruction, Byte CPU::*RegisterToCheck)
+{
+    // Given:
+    cpu.X = 0x50;
+    mem[0xFFFC] = Instruction;
+    mem[0xFFFD] = 0x22;
+    // 0x0072 = 0x22 + 0x50
+    mem[0x0072] = 0x84;
+    CPU cpuCopy = cpu;
+    // When:
+    s32 CyclesUsed = cpu.Execute(4, mem);
+    // Then:
+    EXPECT_EQ(cpu.*RegisterToCheck, 0x84);
+    EXPECT_EQ(CyclesUsed, 4);
+    EXPECT_TRUE(cpu.N);
+    VerifyNotAffectedFlags(cpu, cpuCopy);
+}
+
+void CPU6502LoadRegisterTests::LoadRegisterAbsolute(Byte Instruction, Byte CPU::*RegisterToCheck)
+{
+    // Given:
+    mem[0xFFFC] = Instruction;
+    mem[0xFFFD] = 0x80;
+    mem[0xFFFE] = 0x44;
+    mem[0x4480] = 0x84;
+
+    CPU cpuCopy = cpu;
+    // When:
+    s32 CyclesUsed = cpu.Execute(4, mem);
+    // Then:
+    EXPECT_EQ(cpu.*RegisterToCheck, 0x84);
+    EXPECT_EQ(CyclesUsed, 4);
+    EXPECT_TRUE(cpu.N);
+    VerifyNotAffectedFlags(cpu, cpuCopy);
+}
+
+void CPU6502LoadRegisterTests::LoadRegisterAbsoluteX(Byte Instruction, Byte CPU::*RegisterToCheck)
+{
+    // Given:
+    cpu.X = 0x92;
+    mem[0xFFFC] = Instruction;
+    mem[0xFFFD] = 0x00;
+    mem[0xFFFE] = 0x20;
+    // 0x2092 (e.g. 0x2000 + 0x92)
+    mem[0x2092] = 0x84;
+
+    CPU cpuCopy = cpu;
+    // When:
+    s32 CyclesUsed = cpu.Execute(4, mem);
+    // Then:
+    EXPECT_EQ(cpu.*RegisterToCheck, 0x84);
+    EXPECT_EQ(CyclesUsed, 4);
+    EXPECT_TRUE(cpu.N);
+    VerifyNotAffectedFlags(cpu, cpuCopy);
+}
+
+void CPU6502LoadRegisterTests::LoadRegisterAbsoluteXCrossingPage(Byte Instruction, Byte CPU::*RegisterToCheck)
+{
+    // Given:
+    cpu.X = 0x1;
+    mem[0xFFFC] = Instruction;
+    mem[0xFFFD] = 0xFF;
+    mem[0xFFFE] = 0x44;
+    // 0x44FF + 0x1 = 0x4500 -> Crosses page boundary
+    mem[0x4500] = 0x84;
+    CPU cpuCopy = cpu;
+    s32 CyclesExpected = 5;
+    // When:
+    s32 CyclesUsed = cpu.Execute(CyclesExpected, mem);
+    // Then:
+    EXPECT_EQ(cpu.*RegisterToCheck, 0x84);
+    EXPECT_EQ(CyclesUsed, CyclesExpected);
+    EXPECT_TRUE(cpu.N);
+    VerifyNotAffectedFlags(cpu, cpuCopy);
+}
+
+void CPU6502LoadRegisterTests::LoadRegisterAbsoluteY(Byte Instruction, Byte CPU::*RegisterToCheck)
+{
+    // Given:
+    cpu.Y = 0x92;
+    mem[0xFFFC] = Instruction;
+    mem[0xFFFD] = 0x00;
+    mem[0xFFFE] = 0x20;
+    // 0x2092 (e.g. 0x2000 + 0x92)
+    mem[0x2092] = 0x84;
+
+    CPU cpuCopy = cpu;
+    // When:
+    s32 CyclesUsed = cpu.Execute(4, mem);
+    // Then:
+    EXPECT_EQ(cpu.*RegisterToCheck, 0x84);
+    EXPECT_EQ(CyclesUsed, 4);
+    EXPECT_TRUE(cpu.N);
+    VerifyNotAffectedFlags(cpu, cpuCopy);
+}
+
+void CPU6502LoadRegisterTests::LoadRegisterAbsoluteYCrossingPage(Byte Instruction, Byte CPU::*RegisterToCheck)
+{
+    // Given:
+    cpu.Y = 0x1;
+    mem[0xFFFC] = Instruction;
+    mem[0xFFFD] = 0xFF;
+    mem[0xFFFE] = 0x44;
+    // 0x44FF + 0x1 = 0x4500 -> Crosses page boundary
+    mem[0x4500] = 0x84;
+    CPU cpuCopy = cpu;
+    s32 CyclesExpected = 5;
+    // When:
+    s32 CyclesUsed = cpu.Execute(CyclesExpected, mem);
+    // Then:
+    EXPECT_EQ(cpu.*RegisterToCheck, 0x84);
+    EXPECT_EQ(CyclesUsed, CyclesExpected);
+    EXPECT_TRUE(cpu.N);
+    VerifyNotAffectedFlags(cpu, cpuCopy);
 }
 
 TEST_F(CPU6502LoadRegisterTests, CPUDoesCompleteInstructionWithLessCycles)
@@ -73,48 +200,38 @@ TEST_F(CPU6502LoadRegisterTests, CPUDoesCompleteInstructionWithLessCycles)
 
 TEST_F(CPU6502LoadRegisterTests, LDAImmediateLoadValue)
 {
-
     LoadRegisterImmediateValue(CPU::INS_LDA_IM, &CPU::A);
 }
 
 TEST_F(CPU6502LoadRegisterTests, LDXImmediateLoadValue)
 {
+    LoadRegisterImmediateValue(CPU::INS_LDX_IM, &CPU::X);
+}
 
-    LoadRegisterImmediateValue(CPU::INS_LDA_IM, &CPU::X);
+TEST_F(CPU6502LoadRegisterTests, LDYImmediateLoadValue)
+{
+    LoadRegisterImmediateValue(CPU::INS_LDY_IM, &CPU::Y);
 }
 
 TEST_F(CPU6502LoadRegisterTests, LDAZeroPageLoadValue)
 {
-    // Given:
-    mem[0xFFFC] = CPU::INS_LDA_ZEROP;
-    mem[0xFFFD] = 0x22;
-    mem[0x0022] = 0x84;
-    CPU cpuCopy = cpu;
-    // When:
-    s32 CyclesUsed = cpu.Execute(3, mem);
-    // Then:
-    EXPECT_EQ(cpu.A, 0x84);
-    EXPECT_EQ(CyclesUsed, 3);
-    EXPECT_TRUE(cpu.N);
-    VerifyNotAffectedFlags(cpu, cpuCopy);
+    LoadRegisterZeroPage(CPU::INS_LDA_ZEROP, &CPU::A);
+}
+
+TEST_F(CPU6502LoadRegisterTests, LDXZeroPageLoadValue)
+{
+    LoadRegisterZeroPage(CPU::INS_LDX_ZEROP, &CPU::X);
+}
+
+TEST_F(CPU6502LoadRegisterTests, LDYZeroPageLoadValue)
+{
+    LoadRegisterZeroPage(CPU::INS_LDY_ZEROP, &CPU::Y);
 }
 
 TEST_F(CPU6502LoadRegisterTests, LDAZeroPageXLoadValue)
 {
-    // Given:
-    cpu.X = 0x50;
-    mem[0xFFFC] = CPU::INS_LDA_ZEROP_X;
-    mem[0xFFFD] = 0x22;
-    // 0x0072 = 0x22 + 0x50
-    mem[0x0072] = 0x84;
-    CPU cpuCopy = cpu;
-    // When:
-    s32 CyclesUsed = cpu.Execute(4, mem);
-    // Then:
-    EXPECT_EQ(cpu.A, 0x84);
-    EXPECT_EQ(CyclesUsed, 4);
-    EXPECT_TRUE(cpu.N);
-    VerifyNotAffectedFlags(cpu, cpuCopy);
+
+    LoadRegisterZeroPageX(CPU::INS_LDA_ZEROP_X, &CPU::A);
 }
 
 TEST_F(CPU6502LoadRegisterTests, LDAZeroPageXLoadValueWhenWraps)
@@ -138,102 +255,83 @@ TEST_F(CPU6502LoadRegisterTests, LDAZeroPageXLoadValueWhenWraps)
     VerifyNotAffectedFlags(cpu, cpuCopy);
 }
 
-TEST_F(CPU6502LoadRegisterTests, LDAAbsoluteLoadValue)
+TEST_F(CPU6502LoadRegisterTests, LDXZeroPageYLoadValue)
 {
     // Given:
-    mem[0xFFFC] = CPU::INS_LDA_ABS;
-    mem[0xFFFD] = 0x80;
-    mem[0xFFFE] = 0x44;
-    mem[0x4480] = 0x84;
-
+    cpu.Y = 0x50;
+    mem[0xFFFC] = CPU::INS_LDX_ZEROP_Y;
+    mem[0xFFFD] = 0x22;
+    // 0x0072 = 0x22 + 0x50
+    mem[0x0072] = 0x84;
     CPU cpuCopy = cpu;
     // When:
     s32 CyclesUsed = cpu.Execute(4, mem);
     // Then:
-    EXPECT_EQ(cpu.A, 0x84);
+    EXPECT_EQ(cpu.X, 0x84);
     EXPECT_EQ(CyclesUsed, 4);
     EXPECT_TRUE(cpu.N);
     VerifyNotAffectedFlags(cpu, cpuCopy);
+}
+
+TEST_F(CPU6502LoadRegisterTests, LDYZeroPageXLoadValue)
+{
+
+    LoadRegisterZeroPageX(CPU::INS_LDY_ZEROP_X, &CPU::Y);
+}
+
+TEST_F(CPU6502LoadRegisterTests, LDAAbsoluteLoadValue)
+{
+    LoadRegisterAbsolute(CPU::INS_LDA_ABS, &CPU::A);
+}
+
+TEST_F(CPU6502LoadRegisterTests, LDXAbsoluteLoadValue)
+{
+    LoadRegisterAbsolute(CPU::INS_LDX_ABS, &CPU::X);
+}
+
+TEST_F(CPU6502LoadRegisterTests, LDYAbsoluteLoadValue)
+{
+    LoadRegisterAbsolute(CPU::INS_LDY_ABS, &CPU::Y);
 }
 
 TEST_F(CPU6502LoadRegisterTests, LDAAbsoluteXLoadValue)
 {
-    // Given:
-    cpu.X = 0x92;
-    mem[0xFFFC] = CPU::INS_LDA_ABS_X;
-    mem[0xFFFD] = 0x00;
-    mem[0xFFFE] = 0x20;
-    // 0x2092 (e.g. 0x2000 + 0x92)
-    mem[0x2092] = 0x84;
+    LoadRegisterAbsoluteX(CPU::INS_LDA_ABS_X, &CPU::A);
+}
 
-    CPU cpuCopy = cpu;
-    // When:
-    s32 CyclesUsed = cpu.Execute(4, mem);
-    // Then:
-    EXPECT_EQ(cpu.A, 0x84);
-    EXPECT_EQ(CyclesUsed, 4);
-    EXPECT_TRUE(cpu.N);
-    VerifyNotAffectedFlags(cpu, cpuCopy);
+TEST_F(CPU6502LoadRegisterTests, LDYAbsoluteXLoadValue)
+{
+    LoadRegisterAbsoluteX(CPU::INS_LDY_ABS_X, &CPU::Y);
 }
 
 TEST_F(CPU6502LoadRegisterTests, LDAAbsoluteXLoadValueCrossingPage)
 {
-    // Given:
-    cpu.X = 0x1;
-    mem[0xFFFC] = CPU::INS_LDA_ABS_X;
-    mem[0xFFFD] = 0xFF;
-    mem[0xFFFE] = 0x44;
-    // 0x44FF + 0x1 = 0x4500 -> Crosses page boundary
-    mem[0x4500] = 0x84;
-    CPU cpuCopy = cpu;
-    s32 CyclesExpected = 5;
-    // When:
-    s32 CyclesUsed = cpu.Execute(CyclesExpected, mem);
-    // Then:
-    EXPECT_EQ(cpu.A, 0x84);
-    EXPECT_EQ(CyclesUsed, CyclesExpected);
-    EXPECT_TRUE(cpu.N);
-    VerifyNotAffectedFlags(cpu, cpuCopy);
+    LoadRegisterAbsoluteXCrossingPage(CPU::INS_LDA_ABS_X, &CPU::A);
+}
+
+TEST_F(CPU6502LoadRegisterTests, LDYAbsoluteXLoadValueCrossingPage)
+{
+    LoadRegisterAbsoluteXCrossingPage(CPU::INS_LDY_ABS_X, &CPU::Y);
 }
 
 TEST_F(CPU6502LoadRegisterTests, LDAAbsoluteYLoadValue)
 {
-    // Given:
-    cpu.Y = 0x92;
-    mem[0xFFFC] = CPU::INS_LDA_ABS_Y;
-    mem[0xFFFD] = 0x00;
-    mem[0xFFFE] = 0x20;
-    // 0x2092 (e.g. 0x2000 + 0x92)
-    mem[0x2092] = 0x84;
+    LoadRegisterAbsoluteY(CPU::INS_LDA_ABS_Y, &CPU::A);
+}
 
-    CPU cpuCopy = cpu;
-    // When:
-    s32 CyclesUsed = cpu.Execute(4, mem);
-    // Then:
-    EXPECT_EQ(cpu.A, 0x84);
-    EXPECT_EQ(CyclesUsed, 4);
-    EXPECT_TRUE(cpu.N);
-    VerifyNotAffectedFlags(cpu, cpuCopy);
+TEST_F(CPU6502LoadRegisterTests, LDXAbsoluteYLoadValue)
+{
+    LoadRegisterAbsoluteY(CPU::INS_LDX_ABS_Y, &CPU::X);
 }
 
 TEST_F(CPU6502LoadRegisterTests, LDAAbsoluteYLoadValueCrossingPage)
 {
-    // Given:
-    cpu.Y = 0x1;
-    mem[0xFFFC] = CPU::INS_LDA_ABS_Y;
-    mem[0xFFFD] = 0xFF;
-    mem[0xFFFE] = 0x44;
-    // 0x44FF + 0x1 = 0x4500 -> Crosses page boundary
-    mem[0x4500] = 0x84;
-    CPU cpuCopy = cpu;
-    s32 CyclesExpected = 5;
-    // When:
-    s32 CyclesUsed = cpu.Execute(CyclesExpected, mem);
-    // Then:
-    EXPECT_EQ(cpu.A, 0x84);
-    EXPECT_EQ(CyclesUsed, CyclesExpected);
-    EXPECT_TRUE(cpu.N);
-    VerifyNotAffectedFlags(cpu, cpuCopy);
+    LoadRegisterAbsoluteYCrossingPage(CPU::INS_LDA_ABS_Y, &CPU::A);
+}
+
+TEST_F(CPU6502LoadRegisterTests, LDXAbsoluteYLoadValueCrossingPage)
+{
+    LoadRegisterAbsoluteYCrossingPage(CPU::INS_LDX_ABS_Y, &CPU::X);
 }
 
 TEST_F(CPU6502LoadRegisterTests, LDAIndirectXLoadAValue)
