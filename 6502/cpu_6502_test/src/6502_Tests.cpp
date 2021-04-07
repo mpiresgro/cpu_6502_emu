@@ -1,11 +1,13 @@
 #include <gtest/gtest.h>
 #include "main_6502.h"
 
+using namespace cpu6502;
+
 class CPU6502Test1 : public testing::Test
 {
 public:
-    Mem mem;
-    CPU cpu;
+    cpu6502::Mem mem;
+    cpu6502::CPU cpu;
 
     virtual void SetUp()
     {
@@ -17,7 +19,7 @@ public:
     }
 };
 
-static void VerifyNotAffectedFlags(CPU &cpu, CPU &cpuCopy)
+static void VerifyNotAffectedFlags(cpu6502::CPU &cpu, cpu6502::CPU &cpuCopy)
 {
     // not affected by LDA
     EXPECT_EQ(cpu.C, cpuCopy.C);
