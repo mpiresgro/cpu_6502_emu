@@ -3,7 +3,7 @@
 
 using namespace cpu6502;
 
-class CPU6502Test1 : public testing::Test
+class CPU6502LoadRegisterTests : public testing::Test
 {
 public:
     cpu6502::Mem mem;
@@ -17,6 +17,8 @@ public:
     virtual void TearDown()
     {
     }
+
+    void LoadRegisterImmediateValue(Byte Instruction, Byte CPU::*RegisterToCheck);
 };
 
 static void VerifyNotAffectedFlags(cpu6502::CPU &cpu, cpu6502::CPU &cpuCopy)
@@ -29,7 +31,24 @@ static void VerifyNotAffectedFlags(cpu6502::CPU &cpu, cpu6502::CPU &cpuCopy)
     EXPECT_EQ(cpu.V, cpuCopy.V);
 }
 
-TEST_F(CPU6502Test1, CPUKeepsStateWithZeroCyles)
+void CPU6502LoadRegisterTests::LoadRegisterImmediateValue(Byte Instruction, Byte CPU::*RegisterToCheck)
+{
+
+    // Given:
+    mem[0xFFFC] = Instruction;
+    mem[0xFFFD] = 0x84;
+    CPU cpuCopy = cpu;
+    // When:
+    s32 CyclesUsed = cpu.Execute(2, mem);
+    // Then:
+    EXPECT_EQ(cpu.*RegisterToCheck, 0x84);
+    EXPECT_EQ(CyclesUsed, 2);
+    EXPECT_TRUE(cpu.N);
+    VerifyNotAffectedFlags(cpu, cpuCopy);
+}
+
+
+TEST_F(CPU6502LoadRegisterTests, CPUKeepsStateWithZeroCyles)
 {
     // Given
     constexpr s32 NUM_OF_CYCLES = 0;
@@ -39,7 +58,7 @@ TEST_F(CPU6502Test1, CPUKeepsStateWithZeroCyles)
     EXPECT_EQ(CyclesUsed, 0);
 }
 
-TEST_F(CPU6502Test1, CPUDoesCompleteInstructionWithLessCycles)
+TEST_F(CPU6502LoadRegisterTests, CPUDoesCompleteInstructionWithLessCycles)
 {
     // Given:
     mem[0xFFFC] = CPU::INS_LDA_IM;
@@ -52,22 +71,19 @@ TEST_F(CPU6502Test1, CPUDoesCompleteInstructionWithLessCycles)
     EXPECT_EQ(CyclesUsed, 2);
 }
 
-TEST_F(CPU6502Test1, LDAImmediateLoadValue)
+TEST_F(CPU6502LoadRegisterTests, LDAImmediateLoadValue)
 {
-    // Given:
-    mem[0xFFFC] = CPU::INS_LDA_IM;
-    mem[0xFFFD] = 0x84;
-    CPU cpuCopy = cpu;
-    // When:
-    s32 CyclesUsed = cpu.Execute(2, mem);
-    // Then:
-    EXPECT_EQ(cpu.A, 0x84);
-    EXPECT_EQ(CyclesUsed, 2);
-    EXPECT_TRUE(cpu.N);
-    VerifyNotAffectedFlags(cpu, cpuCopy);
+
+    LoadRegisterImmediateValue(CPU::INS_LDA_IM, &CPU::A);
 }
 
-TEST_F(CPU6502Test1, LDAZeroPageLoadValue)
+TEST_F(CPU6502LoadRegisterTests, LDXImmediateLoadValue)
+{
+
+    LoadRegisterImmediateValue(CPU::INS_LDA_IM, &CPU::X);
+}
+
+TEST_F(CPU6502LoadRegisterTests, LDAZeroPageLoadValue)
 {
     // Given:
     mem[0xFFFC] = CPU::INS_LDA_ZEROP;
@@ -83,7 +99,7 @@ TEST_F(CPU6502Test1, LDAZeroPageLoadValue)
     VerifyNotAffectedFlags(cpu, cpuCopy);
 }
 
-TEST_F(CPU6502Test1, LDAZeroPageXLoadValue)
+TEST_F(CPU6502LoadRegisterTests, LDAZeroPageXLoadValue)
 {
     // Given:
     cpu.X = 0x50;
@@ -101,7 +117,7 @@ TEST_F(CPU6502Test1, LDAZeroPageXLoadValue)
     VerifyNotAffectedFlags(cpu, cpuCopy);
 }
 
-TEST_F(CPU6502Test1, LDAZeroPageXLoadValueWhenWraps)
+TEST_F(CPU6502LoadRegisterTests, LDAZeroPageXLoadValueWhenWraps)
 {
     // The address calculation wraps around if the sum of the base address and the register exceed 0xFF.
     //  If we repeat the last example but with 0xFF in the X register then the accumulator will be
@@ -122,7 +138,7 @@ TEST_F(CPU6502Test1, LDAZeroPageXLoadValueWhenWraps)
     VerifyNotAffectedFlags(cpu, cpuCopy);
 }
 
-TEST_F(CPU6502Test1, LDAAbsoluteLoadValue)
+TEST_F(CPU6502LoadRegisterTests, LDAAbsoluteLoadValue)
 {
     // Given:
     mem[0xFFFC] = CPU::INS_LDA_ABS;
@@ -140,7 +156,7 @@ TEST_F(CPU6502Test1, LDAAbsoluteLoadValue)
     VerifyNotAffectedFlags(cpu, cpuCopy);
 }
 
-TEST_F(CPU6502Test1, LDAAbsoluteXLoadValue)
+TEST_F(CPU6502LoadRegisterTests, LDAAbsoluteXLoadValue)
 {
     // Given:
     cpu.X = 0x92;
@@ -160,7 +176,7 @@ TEST_F(CPU6502Test1, LDAAbsoluteXLoadValue)
     VerifyNotAffectedFlags(cpu, cpuCopy);
 }
 
-TEST_F(CPU6502Test1, LDAAbsoluteXLoadValueCrossingPage)
+TEST_F(CPU6502LoadRegisterTests, LDAAbsoluteXLoadValueCrossingPage)
 {
     // Given:
     cpu.X = 0x1;
@@ -180,7 +196,7 @@ TEST_F(CPU6502Test1, LDAAbsoluteXLoadValueCrossingPage)
     VerifyNotAffectedFlags(cpu, cpuCopy);
 }
 
-TEST_F(CPU6502Test1, LDAAbsoluteYLoadValue)
+TEST_F(CPU6502LoadRegisterTests, LDAAbsoluteYLoadValue)
 {
     // Given:
     cpu.Y = 0x92;
@@ -200,7 +216,7 @@ TEST_F(CPU6502Test1, LDAAbsoluteYLoadValue)
     VerifyNotAffectedFlags(cpu, cpuCopy);
 }
 
-TEST_F(CPU6502Test1, LDAAbsoluteYLoadValueCrossingPage)
+TEST_F(CPU6502LoadRegisterTests, LDAAbsoluteYLoadValueCrossingPage)
 {
     // Given:
     cpu.Y = 0x1;
@@ -220,7 +236,7 @@ TEST_F(CPU6502Test1, LDAAbsoluteYLoadValueCrossingPage)
     VerifyNotAffectedFlags(cpu, cpuCopy);
 }
 
-TEST_F(CPU6502Test1, LDAIndirectXLoadAValue)
+TEST_F(CPU6502LoadRegisterTests, LDAIndirectXLoadAValue)
 {
     // given:
     cpu.X = 0x04;
@@ -243,7 +259,7 @@ TEST_F(CPU6502Test1, LDAIndirectXLoadAValue)
     VerifyNotAffectedFlags(cpu, CPUCopy);
 }
 
-TEST_F(CPU6502Test1, LDAIndirectYLoadAValue)
+TEST_F(CPU6502LoadRegisterTests, LDAIndirectYLoadAValue)
 {
     // given:
     cpu.Y = 0x04;
@@ -266,7 +282,7 @@ TEST_F(CPU6502Test1, LDAIndirectYLoadAValue)
     VerifyNotAffectedFlags(cpu, CPUCopy);
 }
 
-TEST_F(CPU6502Test1, LDAIndirectYLoadAValueCrossingPage)
+TEST_F(CPU6502LoadRegisterTests, LDAIndirectYLoadAValueCrossingPage)
 {
     // given:
     cpu.Y = 0xFF;
