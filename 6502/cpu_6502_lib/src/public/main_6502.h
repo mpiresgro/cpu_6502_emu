@@ -41,7 +41,7 @@ struct Mem
         return Data[Address];
     }
 
-    void WriteWord(Word Value, u32 Address, u32 &Cycles)
+    void WriteWord(Word Value, u32 Address, s32 &Cycles)
     {
         // Write two bytes
         assert(Address + 1 < MAX_MEM);
@@ -79,7 +79,7 @@ struct CPU
         memory.Init();
     }
 
-    Byte Fetch_Byte(u32 &Cycles, Mem &memory)
+    Byte Fetch_Byte(s32 &Cycles, Mem &memory)
     {
         Byte Data = memory[PC];
         PC++;
@@ -87,7 +87,7 @@ struct CPU
         return Data;
     }
 
-    Word Fetch_Word(u32 &Cycles, Mem &memory)
+    Word Fetch_Word(s32 &Cycles, Mem &memory)
     {
         // cpu 6502 -> little endian
         Word Data = memory[PC];
@@ -100,11 +100,18 @@ struct CPU
         return Data;
     }
 
-    Byte ReadByte(u32 &Cycles, Mem &memory, Byte Address)
+    Byte ReadByte(s32 &Cycles, Mem &memory, Word Address)
     {
         Byte Data = memory[Address];
         Cycles--;
         return Data;
+    }
+
+    Word ReadWord(s32 &Cycles, Mem &memory, Word Address)
+    {
+        Byte LowByte = ReadByte(Cycles, memory, Address);
+        Byte HighByte = ReadByte(Cycles, memory, Address + 1);
+        return (HighByte << 8) | LowByte;
     }
 
     void LDA_SET_STATUS()
@@ -118,11 +125,16 @@ struct CPU
         INS_LDA_IM = 0xA9,      // Load Accumulator Immediate Mode
         INS_LDA_ZEROP = 0xA5,   // Load Accumulator Zero Page Mode
         INS_LDA_ZEROP_X = 0xB5, // Load Accumulator Zero Page X Mode
+        INS_LDA_ABS = 0xAD,     // Load Accumulator Absolute Mode
+        INS_LDA_ABS_X = 0xBD,   // Load Accumulator Absolute X Mode
+        INS_LDA_ABS_Y = 0xB9,   // Load Accumulator Absolute Y Mode
+        INS_LDA_IND_X = 0xA1,   // Load Accumulator Inderect X Mode
+        INS_LDA_IND_Y = 0xB1,   // Load Accumulator Inderect Y Mode
         INS_JSR = 0x20;         // Jump to Subroutine
 
-    s32 Execute(u32 Cycles, Mem &memory)
+    s32 Execute(s32 Cycles, Mem &memory)
     {
-        s32 CyclesRequested = Cycles;
+        const s32 CyclesRequested = Cycles;
         while (Cycles > 0)
         {
             Byte Instruction = Fetch_Byte(Cycles, memory);
@@ -156,6 +168,68 @@ struct CPU
             }
             break;
 
+            case INS_LDA_ABS:
+            {
+                Word AbsoluteAdress = Fetch_Word(Cycles, memory);
+                A = ReadByte(Cycles, memory, AbsoluteAdress);
+                LDA_SET_STATUS();
+            }
+            break;
+
+            case INS_LDA_ABS_X:
+            {
+                Word AbsoluteAdress = Fetch_Word(Cycles, memory);
+                Word AbsoluteAdress_X = AbsoluteAdress + X;
+                A = ReadByte(Cycles, memory, AbsoluteAdress_X);
+                bool CrossingPage = (AbsoluteAdress % 256) + X > 0xFE; 
+                if (CrossingPage)
+                {
+                    Cycles--;
+                }
+                LDA_SET_STATUS();
+            }
+            break;
+
+            case INS_LDA_ABS_Y:
+            {
+                Word AbsoluteAdress = Fetch_Word(Cycles, memory);
+                Word AbsoluteAdress_Y = AbsoluteAdress + Y;
+                A = ReadByte(Cycles, memory, AbsoluteAdress_Y);
+                bool CrossingPage = (AbsoluteAdress % 256) + Y > 0xFE; 
+                if (CrossingPage)
+                {
+                    Cycles--;
+                }
+                LDA_SET_STATUS();
+            }
+            break;
+
+            case INS_LDA_IND_X:
+            {
+                Byte ZAddress = Fetch_Byte(Cycles, memory);
+                ZAddress += X;
+                Cycles--;
+                Word EffectiveAddress = ReadWord(Cycles, memory, ZAddress);
+                A = ReadByte(Cycles, memory, EffectiveAddress);
+                LDA_SET_STATUS();
+            }
+            break;
+
+            case INS_LDA_IND_Y:
+            {
+                Byte ZAddress = Fetch_Byte(Cycles, memory);
+                Word EffectiveAddress = ReadWord(Cycles, memory, ZAddress);
+                Word EffectiveAddress_Y  = EffectiveAddress +  Y;
+                A = ReadByte(Cycles, memory, EffectiveAddress_Y);
+                bool CrossingPage = (EffectiveAddress % 256) + Y > 0xFE; 
+                if (CrossingPage)
+                {
+                    Cycles--;
+                }
+                LDA_SET_STATUS();
+            }
+            break;
+
             case INS_JSR:
             {
                 Word SubroutineAddr = Fetch_Word(Cycles, memory);
@@ -167,10 +241,11 @@ struct CPU
             break;
             default:
                 printf("\nInstruction %d not handled\n", Instruction);
+                throw -1; 
                 break;
             }
         }
-
-        return CyclesRequested - Cycles; 
+        // Cycles should be 0 at this point
+        return CyclesRequested - Cycles;
     }
 };
