@@ -6,7 +6,8 @@
 // http://www.obelisk.me.uk/6502/
 // https://github.com/davepoo/6502Emulator/blob/master/6502/6502Lib
 
-namespace cpu6502{
+namespace cpu6502
+{
     using Byte = unsigned char;  // 8 bits
     using Word = unsigned short; // 16 bits
 
@@ -15,8 +16,6 @@ namespace cpu6502{
     struct Mem;
     struct CPU;
 }
-
-
 
 struct cpu6502::Mem
 {
@@ -120,10 +119,10 @@ struct cpu6502::CPU
         return (HighByte << 8) | LowByte;
     }
 
-    void LDA_SET_STATUS()
+    void Set_Zero_and_Negative_Flags(Byte Register)
     {
-        Z = (A == 0);
-        N = (A & 0b10000000) > 0;
+        Z = (Register == 0);
+        N = (Register & 0b10000000) > 0;
     }
 
     // Op Codes
@@ -136,7 +135,20 @@ struct cpu6502::CPU
         INS_LDA_ABS_Y = 0xB9,   // Load Accumulator Absolute Y Mode
         INS_LDA_IND_X = 0xA1,   // Load Accumulator Inderect X Mode
         INS_LDA_IND_Y = 0xB1,   // Load Accumulator Inderect Y Mode
-        INS_JSR = 0x20;         // Jump to Subroutine
+
+        INS_LDX_IM = 0xA2,      // Load X Immediate Mode
+        INS_LDX_ZEROP = 0xA6,   // Load X Zero Page Mode
+        INS_LDX_ZEROP_Y = 0xB6, // Load X Zero Page Y Mode
+        INS_LDX_ABS = 0xAE,     // Load X Absolute Mode
+        INS_LDX_ABS_Y = 0xBE,   // Load X Absolute Y Mode
+
+        INS_LDY_IM = 0xA0,      // Load Y Immediate Mode
+        INS_LDY_ZEROP = 0xA4,   // Load Y Zero Page Mode
+        INS_LDY_ZEROP_X = 0xB4, // Load Y Zero Page X Mode
+        INS_LDY_ABS = 0xAC,     // Load Y Absolute Mode
+        INS_LDY_ABS_X = 0xBC,   // Load Y Absolute X Mode
+
+        INS_JSR = 0x20; // Jump to Subroutine
 
     s32 Execute(s32 Cycles, Mem &memory);
 };
