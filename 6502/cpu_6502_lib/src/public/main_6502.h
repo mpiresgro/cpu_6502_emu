@@ -151,4 +151,8 @@ struct cpu6502::CPU
         INS_JSR = 0x20; // Jump to Subroutine
 
     s32 Execute(s32 Cycles, Mem &memory);
+
+    Byte ZeroPageWithOffset(s32 &Cycles, Mem &memory, Byte &OffSet);
+
+    Word AbsoluteWithOffset(s32 &Cycles, Mem &memory, Byte &OffSet);
 };

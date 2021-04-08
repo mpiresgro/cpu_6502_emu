@@ -55,34 +55,28 @@ cpu6502::s32 cpu6502::CPU::Execute(s32 Cycles, Mem &memory)
         }
         break;
 
-        // Load Register - Zero Page X
+        // Load Register - Zero Page X Offset
         case INS_LDA_ZEROP_X:
         {
-            Byte ZeroPageAddress = Fetch_Byte(Cycles, memory);
-            ZeroPageAddress += X;
-            Cycles--;
-            A = ReadByte(Cycles, memory, ZeroPageAddress);
+            Byte ZeroPageXAddress = ZeroPageWithOffset(Cycles, memory, X);
+            A = ReadByte(Cycles, memory, ZeroPageXAddress);
             Set_Zero_and_Negative_Flags(A);
         }
         break;
 
         case INS_LDY_ZEROP_X:
         {
-            Byte ZeroPageAddress = Fetch_Byte(Cycles, memory);
-            ZeroPageAddress += X;
-            Cycles--;
-            Y = ReadByte(Cycles, memory, ZeroPageAddress);
+            Byte ZeroPageXAddress = ZeroPageWithOffset(Cycles, memory, X);
+            Y = ReadByte(Cycles, memory, ZeroPageXAddress);
             Set_Zero_and_Negative_Flags(Y);
         }
         break;
 
-        // Load Register - Zero Page Y
+        // Load Register - Zero Page Y Offset
         case INS_LDX_ZEROP_Y:
         {
-            Byte ZeroPageAddress = Fetch_Byte(Cycles, memory);
-            ZeroPageAddress += Y;
-            Cycles--;
-            X = ReadByte(Cycles, memory, ZeroPageAddress);
+            Byte ZeroPageYAddress = ZeroPageWithOffset(Cycles, memory, Y);
+            X = ReadByte(Cycles, memory, ZeroPageYAddress);
             Set_Zero_and_Negative_Flags(X);
         }
         break;
@@ -115,28 +109,16 @@ cpu6502::s32 cpu6502::CPU::Execute(s32 Cycles, Mem &memory)
         // Load Register - Absolute X
         case INS_LDA_ABS_X:
         {
-            Word AbsoluteAdress = Fetch_Word(Cycles, memory);
-            Word AbsoluteAdress_X = AbsoluteAdress + X;
+            Word AbsoluteAdress_X = AbsoluteWithOffset(Cycles, memory, X);
             A = ReadByte(Cycles, memory, AbsoluteAdress_X);
-            bool CrossingPage = (AbsoluteAdress % 256) + X > 0xFE;
-            if (CrossingPage)
-            {
-                Cycles--;
-            }
             Set_Zero_and_Negative_Flags(A);
         }
         break;
 
         case INS_LDY_ABS_X:
         {
-            Word AbsoluteAdress = Fetch_Word(Cycles, memory);
-            Word AbsoluteAdress_X = AbsoluteAdress + X;
+            Word AbsoluteAdress_X = AbsoluteWithOffset(Cycles, memory, X);
             Y = ReadByte(Cycles, memory, AbsoluteAdress_X);
-            bool CrossingPage = (AbsoluteAdress % 256) + X > 0xFE;
-            if (CrossingPage)
-            {
-                Cycles--;
-            }
             Set_Zero_and_Negative_Flags(Y);
         }
         break;
@@ -144,28 +126,16 @@ cpu6502::s32 cpu6502::CPU::Execute(s32 Cycles, Mem &memory)
         // Load Register - Absolute Y
         case INS_LDA_ABS_Y:
         {
-            Word AbsoluteAdress = Fetch_Word(Cycles, memory);
-            Word AbsoluteAdress_Y = AbsoluteAdress + Y;
+            Word AbsoluteAdress_Y = AbsoluteWithOffset(Cycles, memory, Y);
             A = ReadByte(Cycles, memory, AbsoluteAdress_Y);
-            bool CrossingPage = (AbsoluteAdress % 256) + Y > 0xFE;
-            if (CrossingPage)
-            {
-                Cycles--;
-            }
             Set_Zero_and_Negative_Flags(A);
         }
         break;
 
         case INS_LDX_ABS_Y:
         {
-            Word AbsoluteAdress = Fetch_Word(Cycles, memory);
-            Word AbsoluteAdress_Y = AbsoluteAdress + Y;
+            Word AbsoluteAdress_Y = AbsoluteWithOffset(Cycles, memory, Y);
             X = ReadByte(Cycles, memory, AbsoluteAdress_Y);
-            bool CrossingPage = (AbsoluteAdress % 256) + Y > 0xFE;
-            if (CrossingPage)
-            {
-                Cycles--;
-            }
             Set_Zero_and_Negative_Flags(X);
         }
         break;
@@ -213,4 +183,26 @@ cpu6502::s32 cpu6502::CPU::Execute(s32 Cycles, Mem &memory)
     }
     // Cycles should be 0 at this point
     return CyclesRequested - Cycles;
+}
+
+cpu6502::Byte cpu6502::CPU::ZeroPageWithOffset(s32 &Cycles, Mem &memory, Byte &OffSet)
+{
+
+    Byte ZeroPageAddress = Fetch_Byte(Cycles, memory);
+    ZeroPageAddress += OffSet;
+    Cycles--;
+    return ZeroPageAddress;
+}
+
+cpu6502::Word cpu6502::CPU::AbsoluteWithOffset(s32 &Cycles, Mem &memory, Byte &OffSet)
+{
+
+    Word AbsoluteAdress = Fetch_Word(Cycles, memory);
+    Word AbsoluteAdress_Offset = AbsoluteAdress + OffSet;
+    bool CrossingPage = (AbsoluteAdress % 256) + OffSet > 0xFE;
+    if (CrossingPage)
+    {
+        Cycles--;
+    }
+    return AbsoluteAdress_Offset;
 }
