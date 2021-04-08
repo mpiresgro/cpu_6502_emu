@@ -2,6 +2,12 @@
 
 cpu6502::s32 cpu6502::CPU::Execute(s32 Cycles, Mem &memory)
 {
+    // Lambda function to load A, X, Y Register with a given Adress
+    auto LoadRegister = [&Cycles, &memory, this](Byte &Register, Word Address) {
+        Register = ReadByte(Cycles, memory, Address);
+        Set_Zero_and_Negative_Flags(Register);
+    };
+
     const s32 CyclesRequested = Cycles;
     while (Cycles > 0)
     {
@@ -34,24 +40,21 @@ cpu6502::s32 cpu6502::CPU::Execute(s32 Cycles, Mem &memory)
         case INS_LDA_ZEROP:
         {
             Byte ZeroPageAddress = Fetch_Byte(Cycles, memory);
-            A = ReadByte(Cycles, memory, ZeroPageAddress);
-            Set_Zero_and_Negative_Flags(A);
+            LoadRegister(A, ZeroPageAddress);
         }
         break;
 
         case INS_LDX_ZEROP:
         {
             Byte ZeroPageAddress = Fetch_Byte(Cycles, memory);
-            X = ReadByte(Cycles, memory, ZeroPageAddress);
-            Set_Zero_and_Negative_Flags(X);
+            LoadRegister(X, ZeroPageAddress);
         }
         break;
 
         case INS_LDY_ZEROP:
         {
             Byte ZeroPageAddress = Fetch_Byte(Cycles, memory);
-            Y = ReadByte(Cycles, memory, ZeroPageAddress);
-            Set_Zero_and_Negative_Flags(Y);
+            LoadRegister(Y, ZeroPageAddress);
         }
         break;
 
@@ -59,16 +62,14 @@ cpu6502::s32 cpu6502::CPU::Execute(s32 Cycles, Mem &memory)
         case INS_LDA_ZEROP_X:
         {
             Byte ZeroPageXAddress = ZeroPageWithOffset(Cycles, memory, X);
-            A = ReadByte(Cycles, memory, ZeroPageXAddress);
-            Set_Zero_and_Negative_Flags(A);
+            LoadRegister(A, ZeroPageXAddress);
         }
         break;
 
         case INS_LDY_ZEROP_X:
         {
             Byte ZeroPageXAddress = ZeroPageWithOffset(Cycles, memory, X);
-            Y = ReadByte(Cycles, memory, ZeroPageXAddress);
-            Set_Zero_and_Negative_Flags(Y);
+            LoadRegister(Y, ZeroPageXAddress);
         }
         break;
 
@@ -76,8 +77,7 @@ cpu6502::s32 cpu6502::CPU::Execute(s32 Cycles, Mem &memory)
         case INS_LDX_ZEROP_Y:
         {
             Byte ZeroPageYAddress = ZeroPageWithOffset(Cycles, memory, Y);
-            X = ReadByte(Cycles, memory, ZeroPageYAddress);
-            Set_Zero_and_Negative_Flags(X);
+            LoadRegister(X, ZeroPageYAddress);
         }
         break;
 
@@ -85,24 +85,22 @@ cpu6502::s32 cpu6502::CPU::Execute(s32 Cycles, Mem &memory)
         case INS_LDA_ABS:
         {
             Word AbsoluteAdress = Fetch_Word(Cycles, memory);
-            A = ReadByte(Cycles, memory, AbsoluteAdress);
-            Set_Zero_and_Negative_Flags(A);
+            LoadRegister(A, AbsoluteAdress);
         }
         break;
 
         case INS_LDX_ABS:
         {
             Word AbsoluteAdress = Fetch_Word(Cycles, memory);
-            X = ReadByte(Cycles, memory, AbsoluteAdress);
-            Set_Zero_and_Negative_Flags(X);
+            LoadRegister(X, AbsoluteAdress);
+
         }
         break;
 
         case INS_LDY_ABS:
         {
             Word AbsoluteAdress = Fetch_Word(Cycles, memory);
-            Y = ReadByte(Cycles, memory, AbsoluteAdress);
-            Set_Zero_and_Negative_Flags(Y);
+            LoadRegister(Y, AbsoluteAdress);
         }
         break;
 
@@ -110,16 +108,14 @@ cpu6502::s32 cpu6502::CPU::Execute(s32 Cycles, Mem &memory)
         case INS_LDA_ABS_X:
         {
             Word AbsoluteAdress_X = AbsoluteWithOffset(Cycles, memory, X);
-            A = ReadByte(Cycles, memory, AbsoluteAdress_X);
-            Set_Zero_and_Negative_Flags(A);
+            LoadRegister(A, AbsoluteAdress_X);
         }
         break;
 
         case INS_LDY_ABS_X:
         {
             Word AbsoluteAdress_X = AbsoluteWithOffset(Cycles, memory, X);
-            Y = ReadByte(Cycles, memory, AbsoluteAdress_X);
-            Set_Zero_and_Negative_Flags(Y);
+            LoadRegister(Y, AbsoluteAdress_X);
         }
         break;
 
@@ -127,16 +123,14 @@ cpu6502::s32 cpu6502::CPU::Execute(s32 Cycles, Mem &memory)
         case INS_LDA_ABS_Y:
         {
             Word AbsoluteAdress_Y = AbsoluteWithOffset(Cycles, memory, Y);
-            A = ReadByte(Cycles, memory, AbsoluteAdress_Y);
-            Set_Zero_and_Negative_Flags(A);
+            LoadRegister(A, AbsoluteAdress_Y);
         }
         break;
 
         case INS_LDX_ABS_Y:
         {
             Word AbsoluteAdress_Y = AbsoluteWithOffset(Cycles, memory, Y);
-            X = ReadByte(Cycles, memory, AbsoluteAdress_Y);
-            Set_Zero_and_Negative_Flags(X);
+            LoadRegister(X, AbsoluteAdress_Y);
         }
         break;
 
@@ -146,8 +140,7 @@ cpu6502::s32 cpu6502::CPU::Execute(s32 Cycles, Mem &memory)
             ZAddress += X;
             Cycles--;
             Word EffectiveAddress = ReadWord(Cycles, memory, ZAddress);
-            A = ReadByte(Cycles, memory, EffectiveAddress);
-            Set_Zero_and_Negative_Flags(A);
+            LoadRegister(A, EffectiveAddress);
         }
         break;
 
@@ -156,13 +149,12 @@ cpu6502::s32 cpu6502::CPU::Execute(s32 Cycles, Mem &memory)
             Byte ZAddress = Fetch_Byte(Cycles, memory);
             Word EffectiveAddress = ReadWord(Cycles, memory, ZAddress);
             Word EffectiveAddress_Y = EffectiveAddress + Y;
-            A = ReadByte(Cycles, memory, EffectiveAddress_Y);
             bool CrossingPage = (EffectiveAddress % 256) + Y > 0xFE;
             if (CrossingPage)
             {
                 Cycles--;
             }
-            Set_Zero_and_Negative_Flags(A);
+            LoadRegister(A, EffectiveAddress_Y);
         }
         break;
 
