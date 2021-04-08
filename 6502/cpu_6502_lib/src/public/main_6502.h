@@ -54,6 +54,14 @@ struct cpu6502::Mem
         Data[Address + 1] = (Value >> 8); // get second byte
         Cycles -= 2;                      // Cycles pass by value;
     }
+
+    void WriteByte(Byte Value, u32 Address, s32 &Cycles)
+    {
+        // Write two bytes
+        assert(Address + 1 < MAX_MEM);
+        Data[Address] = Value;
+        Cycles--;
+    }
 };
 
 struct cpu6502::CPU
@@ -77,7 +85,7 @@ struct cpu6502::CPU
 
     void Reset(Mem &memory)
     {
-        PC = 0xFFFC;
+        PC = 0xFFFC; // Reset Vector
         SP = 0x0100;
         A = X = Y = 0;
         C = Z = I = D = B = V = N = 0;
@@ -127,6 +135,7 @@ struct cpu6502::CPU
 
     // Op Codes
     static constexpr Byte
+        // Load Register
         INS_LDA_IM = 0xA9,      // Load Accumulator Immediate Mode
         INS_LDA_ZEROP = 0xA5,   // Load Accumulator Zero Page Mode
         INS_LDA_ZEROP_X = 0xB5, // Load Accumulator Zero Page X Mode
@@ -147,6 +156,21 @@ struct cpu6502::CPU
         INS_LDY_ZEROP_X = 0xB4, // Load Y Zero Page X Mode
         INS_LDY_ABS = 0xAC,     // Load Y Absolute Mode
         INS_LDY_ABS_X = 0xBC,   // Load Y Absolute X Mode
+
+        // Store Register
+        INS_STA_ZEROP = 0x85,   // Store Accumulator Zero Page Mode
+        INS_STA_ZEROP_X = 0x95, // Store Accumulator Zero Page X Mode
+        INS_STA_ABS = 0x8D,     // Store Accumulator Absolute Mode
+        INS_STA_ABS_X = 0x9D,   // Store Accumulator Absolute X Mode
+        INS_STA_ABS_Y = 0x99,   // Store Accumulator Absolute Y Mode
+
+        INS_STX_ZEROP = 0x86,   // Store X Zero Page Mode
+        INS_STX_ZEROP_Y = 0x96, // Store X Zero Page Y Mode
+        INS_STX_ABS = 0x8E,     // Store X Absolute Mode
+
+        INS_STY_ZEROP = 0x84,   // Store Y Zero Page Mode
+        INS_STY_ZEROP_X = 0x94, // Store Y Zero Page X Mode
+        INS_STY_ABS = 0x8C,     // Store Y Absolute Mode
 
         INS_JSR = 0x20; // Jump to Subroutine
 

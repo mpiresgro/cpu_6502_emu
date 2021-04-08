@@ -93,7 +93,6 @@ cpu6502::s32 cpu6502::CPU::Execute(s32 Cycles, Mem &memory)
         {
             Word AbsoluteAdress = Fetch_Word(Cycles, memory);
             LoadRegister(X, AbsoluteAdress);
-
         }
         break;
 
@@ -155,6 +154,83 @@ cpu6502::s32 cpu6502::CPU::Execute(s32 Cycles, Mem &memory)
                 Cycles--;
             }
             LoadRegister(A, EffectiveAddress_Y);
+        }
+        break;
+
+        case INS_STA_ZEROP:
+        {
+            Byte ZeroPageAddress = Fetch_Byte(Cycles, memory);
+            memory.WriteByte(A, ZeroPageAddress, Cycles);
+        }
+        break;
+
+        case INS_STX_ZEROP:
+        {
+            Byte ZeroPageAddress = Fetch_Byte(Cycles, memory);
+            memory.WriteByte(X, ZeroPageAddress, Cycles);
+        }
+        break;
+
+        case INS_STY_ZEROP:
+        {
+            Byte ZeroPageAddress = Fetch_Byte(Cycles, memory);
+            memory.WriteByte(Y, ZeroPageAddress, Cycles);
+        }
+        break;
+
+        case INS_STA_ZEROP_X:
+        {
+            Byte ZeroPageXAddress = ZeroPageWithOffset(Cycles, memory, X);
+            memory.WriteByte(A, ZeroPageXAddress, Cycles);
+        }
+        break;
+
+        case INS_STY_ZEROP_X:
+        {
+            Byte ZeroPageXAddress = ZeroPageWithOffset(Cycles, memory, X);
+            memory.WriteByte(Y, ZeroPageXAddress, Cycles);
+        }
+        break;
+
+        case INS_STX_ZEROP_Y:
+        {
+            Byte ZeroPageYAddress = ZeroPageWithOffset(Cycles, memory, Y);
+            memory.WriteByte(Y, ZeroPageYAddress, Cycles);
+        }
+        break;
+
+        case INS_STA_ABS:
+        {
+            Word AbsoluteAdress = Fetch_Word(Cycles, memory);
+            memory.WriteByte(A, AbsoluteAdress, Cycles);
+        }
+        break;
+
+        case INS_STX_ABS:
+        {
+            Word AbsoluteAdress = Fetch_Word(Cycles, memory);
+            memory.WriteByte(X, AbsoluteAdress, Cycles);
+        }
+        break;
+
+        case INS_STY_ABS:
+        {
+            Word AbsoluteAdress = Fetch_Word(Cycles, memory);
+            memory.WriteByte(Y, AbsoluteAdress, Cycles);
+        }
+        break;
+
+        case INS_STA_ABS_X:
+        {
+            Word AbsoluteAdress_X = AbsoluteWithOffset(Cycles, memory, X);
+            memory.WriteByte(A, AbsoluteAdress_X, Cycles);
+        }
+        break;
+        
+        case INS_STA_ABS_Y:
+        {
+            Word AbsoluteAdress_Y = AbsoluteWithOffset(Cycles, memory, Y);
+            memory.WriteByte(A, AbsoluteAdress_Y, Cycles);
         }
         break;
 
