@@ -30,7 +30,7 @@ public:
 
 static void VerifyNotAffectedFlags(cpu6502::CPU &cpu, cpu6502::CPU &cpuCopy)
 {
-    // not affected by LDA
+    // not affected by LDA, LDX, LDY 
     EXPECT_EQ(cpu.C, cpuCopy.C);
     EXPECT_EQ(cpu.I, cpuCopy.I);
     EXPECT_EQ(cpu.D, cpuCopy.D);
