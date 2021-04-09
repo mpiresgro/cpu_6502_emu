@@ -45,23 +45,6 @@ struct cpu6502::Mem
         assert(Address < MAX_MEM);
         return Data[Address];
     }
-
-    void WriteWord(Word Value, u32 Address, s32 &Cycles)
-    {
-        // Write two bytes
-        assert(Address + 1 < MAX_MEM);
-        Data[Address] = Value & 0xFF;     // get first byte
-        Data[Address + 1] = (Value >> 8); // get second byte
-        Cycles -= 2;                      // Cycles pass by value;
-    }
-
-    void WriteByte(Byte Value, u32 Address, s32 &Cycles)
-    {
-        // Write two bytes
-        assert(Address + 1 < MAX_MEM);
-        Data[Address] = Value;
-        Cycles--;
-    }
 };
 
 struct cpu6502::CPU
@@ -120,6 +103,12 @@ struct cpu6502::CPU
         return Data;
     }
 
+    void WriteByte(Byte Value, u32 Address, s32 &Cycles, Mem &memory)
+    {
+        memory[Address] = Value;
+        Cycles--;
+    }
+
     Word ReadWord(s32 &Cycles, Mem &memory, Word Address)
     {
         Byte LowByte = ReadByte(Cycles, memory, Address);
@@ -127,6 +116,14 @@ struct cpu6502::CPU
         return (HighByte << 8) | LowByte;
     }
 
+    void WriteWord(Word Value, u32 Address, s32 &Cycles,  Mem &memory)
+    {
+        // Write two bytes
+        memory[Address] = Value & 0xFF;     // get first byte
+        memory[Address + 1] = (Value >> 8); // get second byte
+        Cycles -= 2;                      // Cycles pass by value;
+    }
+    
     void Set_Zero_and_Negative_Flags(Byte Register)
     {
         Z = (Register == 0);
@@ -163,7 +160,9 @@ struct cpu6502::CPU
         INS_STA_ABS = 0x8D,     // Store Accumulator Absolute Mode
         INS_STA_ABS_X = 0x9D,   // Store Accumulator Absolute X Mode
         INS_STA_ABS_Y = 0x99,   // Store Accumulator Absolute Y Mode
-
+        INS_STA_IND_X = 0x81,   // Store Accumulator Inderect X Mode
+        INS_STA_IND_Y = 0x91,   // Store Accumulator Inderect Y Mode
+        
         INS_STX_ZEROP = 0x86,   // Store X Zero Page Mode
         INS_STX_ZEROP_Y = 0x96, // Store X Zero Page Y Mode
         INS_STX_ABS = 0x8E,     // Store X Absolute Mode
