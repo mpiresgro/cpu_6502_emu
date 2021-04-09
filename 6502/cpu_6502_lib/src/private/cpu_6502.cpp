@@ -135,6 +135,7 @@ cpu6502::s32 cpu6502::CPU::Execute(s32 Cycles, Mem &memory)
 
         case INS_LDA_IND_X:
         {
+            // TODO: Check if INS_LDA_IND_X needs CrossingPage check
             Byte ZAddress = Fetch_Byte(Cycles, memory);
             ZAddress += X;
             Cycles--;
@@ -160,84 +161,104 @@ cpu6502::s32 cpu6502::CPU::Execute(s32 Cycles, Mem &memory)
         case INS_STA_ZEROP:
         {
             Byte ZeroPageAddress = Fetch_Byte(Cycles, memory);
-            memory.WriteByte(A, ZeroPageAddress, Cycles);
+            WriteByte(A, ZeroPageAddress, Cycles, memory);
         }
         break;
 
         case INS_STX_ZEROP:
         {
             Byte ZeroPageAddress = Fetch_Byte(Cycles, memory);
-            memory.WriteByte(X, ZeroPageAddress, Cycles);
+            WriteByte(X, ZeroPageAddress, Cycles, memory);
         }
         break;
 
         case INS_STY_ZEROP:
         {
             Byte ZeroPageAddress = Fetch_Byte(Cycles, memory);
-            memory.WriteByte(Y, ZeroPageAddress, Cycles);
+            WriteByte(Y, ZeroPageAddress, Cycles, memory);
         }
         break;
 
         case INS_STA_ZEROP_X:
         {
             Byte ZeroPageXAddress = ZeroPageWithOffset(Cycles, memory, X);
-            memory.WriteByte(A, ZeroPageXAddress, Cycles);
+            WriteByte(A, ZeroPageXAddress, Cycles, memory);
         }
         break;
 
         case INS_STY_ZEROP_X:
         {
             Byte ZeroPageXAddress = ZeroPageWithOffset(Cycles, memory, X);
-            memory.WriteByte(Y, ZeroPageXAddress, Cycles);
+            WriteByte(Y, ZeroPageXAddress, Cycles, memory);
         }
         break;
 
         case INS_STX_ZEROP_Y:
         {
             Byte ZeroPageYAddress = ZeroPageWithOffset(Cycles, memory, Y);
-            memory.WriteByte(Y, ZeroPageYAddress, Cycles);
+            WriteByte(Y, ZeroPageYAddress, Cycles, memory);
         }
         break;
 
         case INS_STA_ABS:
         {
             Word AbsoluteAdress = Fetch_Word(Cycles, memory);
-            memory.WriteByte(A, AbsoluteAdress, Cycles);
+            WriteByte(A, AbsoluteAdress, Cycles, memory);
         }
         break;
 
         case INS_STX_ABS:
         {
             Word AbsoluteAdress = Fetch_Word(Cycles, memory);
-            memory.WriteByte(X, AbsoluteAdress, Cycles);
+            WriteByte(X, AbsoluteAdress, Cycles, memory);
         }
         break;
 
         case INS_STY_ABS:
         {
             Word AbsoluteAdress = Fetch_Word(Cycles, memory);
-            memory.WriteByte(Y, AbsoluteAdress, Cycles);
+            WriteByte(Y, AbsoluteAdress, Cycles, memory);
         }
         break;
 
         case INS_STA_ABS_X:
         {
             Word AbsoluteAdress_X = AbsoluteWithOffset(Cycles, memory, X);
-            memory.WriteByte(A, AbsoluteAdress_X, Cycles);
+            WriteByte(A, AbsoluteAdress_X, Cycles, memory);
         }
         break;
-        
+
         case INS_STA_ABS_Y:
         {
             Word AbsoluteAdress_Y = AbsoluteWithOffset(Cycles, memory, Y);
-            memory.WriteByte(A, AbsoluteAdress_Y, Cycles);
+            WriteByte(A, AbsoluteAdress_Y, Cycles, memory);
+        }
+        break;
+
+        case INS_STA_IND_X:
+        {
+            Byte ZAddress = Fetch_Byte(Cycles, memory);
+            ZAddress += X;
+            Cycles--;
+            Word EffectiveAddress = ReadWord(Cycles, memory, ZAddress);
+            WriteByte(A, EffectiveAddress, Cycles, memory);
+        }
+        break;
+
+        case INS_STA_IND_Y:
+        {
+            Byte ZAddress = Fetch_Byte(Cycles, memory);
+            Word EffectiveAddress = ReadWord(Cycles, memory, ZAddress);
+            Word EffectiveAddress_Y = EffectiveAddress + Y;
+            Cycles--;
+            WriteByte(A, EffectiveAddress_Y, Cycles, memory);
         }
         break;
 
         case INS_JSR:
         {
             Word SubroutineAddr = Fetch_Word(Cycles, memory);
-            memory.WriteWord(PC - 1, SP, Cycles);
+            WriteWord(PC - 1, SP, Cycles, memory);
             SP += 2;
             PC = SubroutineAddr;
             Cycles--;
