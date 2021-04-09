@@ -66,9 +66,9 @@ struct cpu6502::CPU
     Byte V : 1;
     Byte N : 1;
 
-    void Reset(Mem &memory)
+    void Reset(Mem &memory , int ResetVector=0)
     {
-        PC = 0xFFFC; // Reset Vector
+        PC = (ResetVector) ? ResetVector : 0xFFFC;
         SP = 0x0100;
         A = X = Y = 0;
         C = Z = I = D = B = V = N = 0;
