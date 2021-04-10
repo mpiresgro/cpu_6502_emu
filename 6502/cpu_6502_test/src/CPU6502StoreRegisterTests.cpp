@@ -24,7 +24,7 @@ public:
     void StoreRegisterAbsoluteWithOffset(Byte Instruction, Byte CPU::*RegisterToCheck, Byte CPU::*Offset);
 };
 
-void VerifyNotAffectedFlags(cpu6502::CPU &cpu, cpu6502::CPU &cpuCopy)
+static void VerifyNotAffectedFlags(cpu6502::CPU &cpu, cpu6502::CPU &cpuCopy)
 {
     // not affected by STA, STX, STY
     EXPECT_EQ(cpu.C, cpuCopy.C);

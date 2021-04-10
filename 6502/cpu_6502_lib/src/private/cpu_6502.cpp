@@ -258,11 +258,28 @@ cpu6502::s32 cpu6502::CPU::Execute(s32 Cycles, Mem &memory)
         case INS_JSR:
         {
             Word SubroutineAddr = Fetch_Word(Cycles, memory);
-            WriteWord(PC - 1, SP, Cycles, memory);
-            SP += 2;
+            // Save PC in Stack
+            PushPCMinusOneToStack(Cycles, memory);
+            // Change PC to Jump Address
             PC = SubroutineAddr;
             Cycles--;
         }
+        break;
+
+        case INS_RTS:
+        {
+            // Get PC From Stack
+            Word ReturnAddress = PopWordFromStack(Cycles, memory);
+            PC = ReturnAddress + 1;
+            Cycles -= 2;
+        }
+        break; 
+        case INS_JMP_ABS:
+        {
+            Word AbsoluteAdress = Fetch_Word(Cycles, memory);
+            PC = AbsoluteAdress;
+        }
+
         break;
         default:
             printf("\nInstruction %d not handled\n", Instruction);
