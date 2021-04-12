@@ -167,6 +167,19 @@ struct cpu6502::CPU
         return Value;
     }
 
+    void PushByteToStack(s32 &Cycles, Mem &memory, Byte Value)
+    {
+        WriteByte(Value, SPTo16Address(), Cycles, memory);
+        SP--;
+    }
+
+    Byte PopByteFromStack(s32 &Cycles, Mem &memory){
+        Byte Value = ReadByte(Cycles, memory, SPTo16Address() + 1);
+        SP ++;
+        Cycles--;
+        return Value;
+    }
+
     void Set_Zero_and_Negative_Flags(Byte Register)
     {
         flags.Z = (Register == 0);
@@ -214,10 +227,19 @@ struct cpu6502::CPU
         INS_STY_ZEROP_X = 0x94, // Store Y Zero Page X Mode
         INS_STY_ABS = 0x8C,     // Store Y Absolute Mode
 
+        // Jumps and Calls
         INS_JSR = 0x20,     // Jump to Subroutine
         INS_RTS = 0x60,     // Return from Subroutine
         INS_JMP_ABS = 0x4C, // Jump Absolute
-        INS_JMP_IND = 0x6C; // Jump Indirect
+        INS_JMP_IND = 0x6C, // Jump Indirect
+
+        // Stack Operations
+        INS_TSX = 0xBA, // Transfer stack pointer to X
+        INS_TXS = 0x9A, // Transfer X to stack pointer
+        INS_PHA = 0x48, // Transfer accumulator on to the stack
+        INS_PHP = 0x08, // Transfer status flags on to the stack 
+        INS_PLA = 0x68, // Pull accumulator value from stack
+        INS_PLP = 0x28; // Pull status flags value from stack
 
     s32 Execute(s32 Cycles, Mem &memory);
 
