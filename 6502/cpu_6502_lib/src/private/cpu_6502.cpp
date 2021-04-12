@@ -273,7 +273,7 @@ cpu6502::s32 cpu6502::CPU::Execute(s32 Cycles, Mem &memory)
             PC = ReturnAddress + 1;
             Cycles -= 2;
         }
-        break; 
+        break;
         case INS_JMP_ABS:
         {
             Word AbsoluteAddress = Fetch_Word(Cycles, memory);
@@ -286,8 +286,52 @@ cpu6502::s32 cpu6502::CPU::Execute(s32 Cycles, Mem &memory)
             Word JumpAddress = ReadWord(Cycles, memory, AbsoluteAddress);
             PC = JumpAddress;
         }
-
         break;
+
+        case INS_TSX:
+        {
+            X = SP;
+            Cycles--;
+            Set_Zero_and_Negative_Flags(A);
+        }
+        break;
+
+        case INS_TXS:
+        {
+            SP = X;
+            Cycles--;
+        }
+        break;
+
+        case INS_PHA:
+        {
+            PushByteToStack(Cycles, memory, A);
+            Cycles--;
+        }
+        break;
+
+        case INS_PHP:
+        {
+            PushByteToStack(Cycles, memory, PS);
+            Cycles--;
+        }
+        break;
+
+        case INS_PLA:
+        {
+            A = PopByteFromStack(Cycles, memory);
+            Cycles--;
+            Set_Zero_and_Negative_Flags(A);
+        }
+        break;
+
+        case INS_PLP:
+        {
+            PS = PopByteFromStack(Cycles, memory);
+            Cycles--;
+        }
+        break;
+
         default:
             printf("\nInstruction %d not handled\n", Instruction);
             throw -1;
