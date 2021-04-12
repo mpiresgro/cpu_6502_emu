@@ -48,14 +48,16 @@ struct cpu6502::Mem
     }
 };
 
-struct cpu6502::ProcessorFlags{
-    
+struct cpu6502::ProcessorFlags
+{
+
     // Status Flags - C++ bit field
     Byte C : 1;
     Byte Z : 1;
     Byte I : 1;
     Byte D : 1;
     Byte B : 1;
+    Byte NotUsedBit : 1;
     Byte V : 1;
     Byte N : 1;
 };
@@ -70,11 +72,11 @@ struct cpu6502::CPU
     Byte A; // Accumulator
     Byte X, Y;
 
-    union {
-        Byte PS; 
+    union
+    {
+        Byte PS;
         ProcessorFlags flags;
     };
-
 
     void Reset(Mem &memory, Word ResetVector = 0)
     {
@@ -212,10 +214,10 @@ struct cpu6502::CPU
         INS_STY_ZEROP_X = 0x94, // Store Y Zero Page X Mode
         INS_STY_ABS = 0x8C,     // Store Y Absolute Mode
 
-        INS_JSR = 0x20, // Jump to Subroutine
-        INS_RTS = 0x60, // Return from Subroutine
+        INS_JSR = 0x20,     // Jump to Subroutine
+        INS_RTS = 0x60,     // Return from Subroutine
         INS_JMP_ABS = 0x4C, // Jump Absolute
-        INS_JMP_IND = 0x6C; // Jump Indirect 
+        INS_JMP_IND = 0x6C; // Jump Indirect
 
     s32 Execute(s32 Cycles, Mem &memory);
 
