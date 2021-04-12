@@ -31,11 +31,11 @@ public:
 static void VerifyNotAffectedFlags(cpu6502::CPU &cpu, cpu6502::CPU &cpuCopy)
 {
     // not affected by LDA, LDX, LDY 
-    EXPECT_EQ(cpu.C, cpuCopy.C);
-    EXPECT_EQ(cpu.I, cpuCopy.I);
-    EXPECT_EQ(cpu.D, cpuCopy.D);
-    EXPECT_EQ(cpu.B, cpuCopy.B);
-    EXPECT_EQ(cpu.V, cpuCopy.V);
+    EXPECT_EQ(cpu.flags.C, cpuCopy.flags.C);
+    EXPECT_EQ(cpu.flags.I, cpuCopy.flags.I);
+    EXPECT_EQ(cpu.flags.D, cpuCopy.flags.D);
+    EXPECT_EQ(cpu.flags.B, cpuCopy.flags.B);
+    EXPECT_EQ(cpu.flags.V, cpuCopy.flags.V);
 }
 
 void CPU6502LoadRegisterTests::LoadRegisterImmediateValue(Byte Instruction, Byte CPU::*RegisterToCheck)
@@ -49,7 +49,7 @@ void CPU6502LoadRegisterTests::LoadRegisterImmediateValue(Byte Instruction, Byte
     // Then:
     EXPECT_EQ(cpu.*RegisterToCheck, 0x84);
     EXPECT_EQ(CyclesUsed, 2);
-    EXPECT_TRUE(cpu.N);
+    EXPECT_TRUE(cpu.flags.N);
     VerifyNotAffectedFlags(cpu, cpuCopy);
 }
 
@@ -65,7 +65,7 @@ void CPU6502LoadRegisterTests::LoadRegisterZeroPage(Byte Instruction, Byte CPU::
     // Then:
     EXPECT_EQ(cpu.*RegisterToCheck, 0x84);
     EXPECT_EQ(CyclesUsed, 3);
-    EXPECT_TRUE(cpu.N);
+    EXPECT_TRUE(cpu.flags.N);
     VerifyNotAffectedFlags(cpu, cpuCopy);
 }
 
@@ -83,7 +83,7 @@ void CPU6502LoadRegisterTests::LoadRegisterZeroPageX(Byte Instruction, Byte CPU:
     // Then:
     EXPECT_EQ(cpu.*RegisterToCheck, 0x84);
     EXPECT_EQ(CyclesUsed, 4);
-    EXPECT_TRUE(cpu.N);
+    EXPECT_TRUE(cpu.flags.N);
     VerifyNotAffectedFlags(cpu, cpuCopy);
 }
 
@@ -101,7 +101,7 @@ void CPU6502LoadRegisterTests::LoadRegisterAbsolute(Byte Instruction, Byte CPU::
     // Then:
     EXPECT_EQ(cpu.*RegisterToCheck, 0x84);
     EXPECT_EQ(CyclesUsed, 4);
-    EXPECT_TRUE(cpu.N);
+    EXPECT_TRUE(cpu.flags.N);
     VerifyNotAffectedFlags(cpu, cpuCopy);
 }
 
@@ -121,7 +121,7 @@ void CPU6502LoadRegisterTests::LoadRegisterAbsoluteX(Byte Instruction, Byte CPU:
     // Then:
     EXPECT_EQ(cpu.*RegisterToCheck, 0x84);
     EXPECT_EQ(CyclesUsed, 4);
-    EXPECT_TRUE(cpu.N);
+    EXPECT_TRUE(cpu.flags.N);
     VerifyNotAffectedFlags(cpu, cpuCopy);
 }
 
@@ -141,7 +141,7 @@ void CPU6502LoadRegisterTests::LoadRegisterAbsoluteXCrossingPage(Byte Instructio
     // Then:
     EXPECT_EQ(cpu.*RegisterToCheck, 0x84);
     EXPECT_EQ(CyclesUsed, CyclesExpected);
-    EXPECT_TRUE(cpu.N);
+    EXPECT_TRUE(cpu.flags.N);
     VerifyNotAffectedFlags(cpu, cpuCopy);
 }
 
@@ -161,7 +161,7 @@ void CPU6502LoadRegisterTests::LoadRegisterAbsoluteY(Byte Instruction, Byte CPU:
     // Then:
     EXPECT_EQ(cpu.*RegisterToCheck, 0x84);
     EXPECT_EQ(CyclesUsed, 4);
-    EXPECT_TRUE(cpu.N);
+    EXPECT_TRUE(cpu.flags.N);
     VerifyNotAffectedFlags(cpu, cpuCopy);
 }
 
@@ -181,7 +181,7 @@ void CPU6502LoadRegisterTests::LoadRegisterAbsoluteYCrossingPage(Byte Instructio
     // Then:
     EXPECT_EQ(cpu.*RegisterToCheck, 0x84);
     EXPECT_EQ(CyclesUsed, CyclesExpected);
-    EXPECT_TRUE(cpu.N);
+    EXPECT_TRUE(cpu.flags.N);
     VerifyNotAffectedFlags(cpu, cpuCopy);
 }
 
@@ -251,7 +251,7 @@ TEST_F(CPU6502LoadRegisterTests, LDAZeroPageXLoadValueWhenWraps)
     // Then:
     EXPECT_EQ(cpu.A, 0x84);
     EXPECT_EQ(CyclesUsed, 4);
-    EXPECT_TRUE(cpu.N);
+    EXPECT_TRUE(cpu.flags.N);
     VerifyNotAffectedFlags(cpu, cpuCopy);
 }
 
@@ -269,7 +269,7 @@ TEST_F(CPU6502LoadRegisterTests, LDXZeroPageYLoadValue)
     // Then:
     EXPECT_EQ(cpu.X, 0x84);
     EXPECT_EQ(CyclesUsed, 4);
-    EXPECT_TRUE(cpu.N);
+    EXPECT_TRUE(cpu.flags.N);
     VerifyNotAffectedFlags(cpu, cpuCopy);
 }
 
@@ -352,8 +352,8 @@ TEST_F(CPU6502LoadRegisterTests, LDAIndirectXLoadAValue)
     //then:
     EXPECT_EQ(cpu.A, 0x37);
     EXPECT_EQ(CyclesUsed, EXPECTED_CYCLES);
-    EXPECT_FALSE(cpu.Z);
-    EXPECT_FALSE(cpu.N);
+    EXPECT_FALSE(cpu.flags.Z);
+    EXPECT_FALSE(cpu.flags.N);
     VerifyNotAffectedFlags(cpu, CPUCopy);
 }
 
@@ -375,8 +375,8 @@ TEST_F(CPU6502LoadRegisterTests, LDAIndirectYLoadAValue)
     //then:
     EXPECT_EQ(cpu.A, 0x37);
     EXPECT_EQ(CyclesUsed, EXPECTED_CYCLES);
-    EXPECT_FALSE(cpu.Z);
-    EXPECT_FALSE(cpu.N);
+    EXPECT_FALSE(cpu.flags.Z);
+    EXPECT_FALSE(cpu.flags.N);
     VerifyNotAffectedFlags(cpu, CPUCopy);
 }
 
@@ -398,7 +398,7 @@ TEST_F(CPU6502LoadRegisterTests, LDAIndirectYLoadAValueCrossingPage)
     //then:
     EXPECT_EQ(cpu.A, 0x37);
     EXPECT_EQ(CyclesUsed, EXPECTED_CYCLES);
-    EXPECT_FALSE(cpu.Z);
-    EXPECT_FALSE(cpu.N);
+    EXPECT_FALSE(cpu.flags.Z);
+    EXPECT_FALSE(cpu.flags.N);
     VerifyNotAffectedFlags(cpu, CPUCopy);
 }

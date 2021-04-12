@@ -22,13 +22,13 @@ public:
 static void VerifyNotAffectedFlags(cpu6502::CPU &cpu, cpu6502::CPU &cpuCopy)
 {
     // not affected by JMP, JSR, RTS
-    EXPECT_EQ(cpu.C, cpuCopy.C);
-    EXPECT_EQ(cpu.Z, cpuCopy.Z);
-    EXPECT_EQ(cpu.I, cpuCopy.I);
-    EXPECT_EQ(cpu.D, cpuCopy.D);
-    EXPECT_EQ(cpu.B, cpuCopy.B);
-    EXPECT_EQ(cpu.V, cpuCopy.V);
-    EXPECT_EQ(cpu.N, cpuCopy.N);
+    EXPECT_EQ(cpu.flags.C, cpuCopy.flags.C);
+    EXPECT_EQ(cpu.flags.I, cpuCopy.flags.I);
+    EXPECT_EQ(cpu.flags.Z, cpuCopy.flags.Z);
+    EXPECT_EQ(cpu.flags.D, cpuCopy.flags.D);
+    EXPECT_EQ(cpu.flags.B, cpuCopy.flags.B);
+    EXPECT_EQ(cpu.flags.V, cpuCopy.flags.V);
+    EXPECT_EQ(cpu.flags.N, cpuCopy.flags.N);
 }
 
 TEST_F(CPU6502JumpsAndCallsTests, JumpToSubroutineAndJumpBack)
@@ -53,6 +53,13 @@ TEST_F(CPU6502JumpsAndCallsTests, JumpToSubroutineAndJumpBack)
     VerifyNotAffectedFlags(cpu, cpuCopy);
 }
 
+TEST_F(CPU6502JumpsAndCallsTests, JSRDoesntAffectProcessorStatus)
+{
+
+}
+
+
+
 TEST_F(CPU6502JumpsAndCallsTests, JumpToLocationAbsolute)
 {
     // Given:
@@ -72,6 +79,8 @@ TEST_F(CPU6502JumpsAndCallsTests, JumpToLocationAbsolute)
     VerifyNotAffectedFlags(cpu, cpuCopy);
 
 }
+
+
 
 TEST_F(CPU6502JumpsAndCallsTests, JumpToLocationAIndirect)
 {

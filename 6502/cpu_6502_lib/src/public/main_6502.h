@@ -15,6 +15,7 @@ namespace cpu6502
     using s32 = signed int;
     struct Mem;
     struct CPU;
+    struct ProcessorFlags;
 }
 
 struct cpu6502::Mem
@@ -47,6 +48,18 @@ struct cpu6502::Mem
     }
 };
 
+struct cpu6502::ProcessorFlags{
+    
+    // Status Flags - C++ bit field
+    Byte C : 1;
+    Byte Z : 1;
+    Byte I : 1;
+    Byte D : 1;
+    Byte B : 1;
+    Byte V : 1;
+    Byte N : 1;
+};
+
 struct cpu6502::CPU
 {
 
@@ -57,14 +70,11 @@ struct cpu6502::CPU
     Byte A; // Accumulator
     Byte X, Y;
 
-    // Status Flags - C++ bit field
-    Byte C : 1;
-    Byte Z : 1;
-    Byte I : 1;
-    Byte D : 1;
-    Byte B : 1;
-    Byte V : 1;
-    Byte N : 1;
+    union {
+        Byte PS; 
+        ProcessorFlags flags;
+    };
+
 
     void Reset(Mem &memory, Word ResetVector = 0)
     {
@@ -72,7 +82,7 @@ struct cpu6502::CPU
         PC = (ResetVector) ? ResetVector : 0xFFFC;
         SP = 0xFF; // system stack ($0100-$01FF)
         A = X = Y = 0;
-        C = Z = I = D = B = V = N = 0;
+        flags.C = flags.Z = flags.I = flags.D = flags.B = flags.V = flags.N = 0;
         memory.Init();
     }
 
@@ -157,8 +167,8 @@ struct cpu6502::CPU
 
     void Set_Zero_and_Negative_Flags(Byte Register)
     {
-        Z = (Register == 0);
-        N = (Register & 0b10000000) > 0;
+        flags.Z = (Register == 0);
+        flags.N = (Register & 0b10000000) > 0;
     }
 
     // Op Codes
