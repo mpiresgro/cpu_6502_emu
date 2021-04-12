@@ -2,7 +2,7 @@
 
 cpu6502::s32 cpu6502::CPU::Execute(s32 Cycles, Mem &memory)
 {
-    // Lambda function to load A, X, Y Register with a given Adress
+    // Lambda function to load A, X, Y Register with a given Address
     auto LoadRegister = [&Cycles, &memory, this](Byte &Register, Word Address) {
         Register = ReadByte(Cycles, memory, Address);
         Set_Zero_and_Negative_Flags(Register);
@@ -84,52 +84,52 @@ cpu6502::s32 cpu6502::CPU::Execute(s32 Cycles, Mem &memory)
         // Load Register - Absolute
         case INS_LDA_ABS:
         {
-            Word AbsoluteAdress = Fetch_Word(Cycles, memory);
-            LoadRegister(A, AbsoluteAdress);
+            Word AbsoluteAddress = Fetch_Word(Cycles, memory);
+            LoadRegister(A, AbsoluteAddress);
         }
         break;
 
         case INS_LDX_ABS:
         {
-            Word AbsoluteAdress = Fetch_Word(Cycles, memory);
-            LoadRegister(X, AbsoluteAdress);
+            Word AbsoluteAddress = Fetch_Word(Cycles, memory);
+            LoadRegister(X, AbsoluteAddress);
         }
         break;
 
         case INS_LDY_ABS:
         {
-            Word AbsoluteAdress = Fetch_Word(Cycles, memory);
-            LoadRegister(Y, AbsoluteAdress);
+            Word AbsoluteAddress = Fetch_Word(Cycles, memory);
+            LoadRegister(Y, AbsoluteAddress);
         }
         break;
 
         // Load Register - Absolute X
         case INS_LDA_ABS_X:
         {
-            Word AbsoluteAdress_X = AbsoluteWithOffset(Cycles, memory, X);
-            LoadRegister(A, AbsoluteAdress_X);
+            Word AbsoluteAddress_X = AbsoluteWithOffset(Cycles, memory, X);
+            LoadRegister(A, AbsoluteAddress_X);
         }
         break;
 
         case INS_LDY_ABS_X:
         {
-            Word AbsoluteAdress_X = AbsoluteWithOffset(Cycles, memory, X);
-            LoadRegister(Y, AbsoluteAdress_X);
+            Word AbsoluteAddress_X = AbsoluteWithOffset(Cycles, memory, X);
+            LoadRegister(Y, AbsoluteAddress_X);
         }
         break;
 
         // Load Register - Absolute Y
         case INS_LDA_ABS_Y:
         {
-            Word AbsoluteAdress_Y = AbsoluteWithOffset(Cycles, memory, Y);
-            LoadRegister(A, AbsoluteAdress_Y);
+            Word AbsoluteAddress_Y = AbsoluteWithOffset(Cycles, memory, Y);
+            LoadRegister(A, AbsoluteAddress_Y);
         }
         break;
 
         case INS_LDX_ABS_Y:
         {
-            Word AbsoluteAdress_Y = AbsoluteWithOffset(Cycles, memory, Y);
-            LoadRegister(X, AbsoluteAdress_Y);
+            Word AbsoluteAddress_Y = AbsoluteWithOffset(Cycles, memory, Y);
+            LoadRegister(X, AbsoluteAddress_Y);
         }
         break;
 
@@ -202,36 +202,36 @@ cpu6502::s32 cpu6502::CPU::Execute(s32 Cycles, Mem &memory)
 
         case INS_STA_ABS:
         {
-            Word AbsoluteAdress = Fetch_Word(Cycles, memory);
-            WriteByte(A, AbsoluteAdress, Cycles, memory);
+            Word AbsoluteAddress = Fetch_Word(Cycles, memory);
+            WriteByte(A, AbsoluteAddress, Cycles, memory);
         }
         break;
 
         case INS_STX_ABS:
         {
-            Word AbsoluteAdress = Fetch_Word(Cycles, memory);
-            WriteByte(X, AbsoluteAdress, Cycles, memory);
+            Word AbsoluteAddress = Fetch_Word(Cycles, memory);
+            WriteByte(X, AbsoluteAddress, Cycles, memory);
         }
         break;
 
         case INS_STY_ABS:
         {
-            Word AbsoluteAdress = Fetch_Word(Cycles, memory);
-            WriteByte(Y, AbsoluteAdress, Cycles, memory);
+            Word AbsoluteAddress = Fetch_Word(Cycles, memory);
+            WriteByte(Y, AbsoluteAddress, Cycles, memory);
         }
         break;
 
         case INS_STA_ABS_X:
         {
-            Word AbsoluteAdress_X = AbsoluteWithOffset(Cycles, memory, X);
-            WriteByte(A, AbsoluteAdress_X, Cycles, memory);
+            Word AbsoluteAddress_X = AbsoluteWithOffset(Cycles, memory, X);
+            WriteByte(A, AbsoluteAddress_X, Cycles, memory);
         }
         break;
 
         case INS_STA_ABS_Y:
         {
-            Word AbsoluteAdress_Y = AbsoluteWithOffset(Cycles, memory, Y);
-            WriteByte(A, AbsoluteAdress_Y, Cycles, memory);
+            Word AbsoluteAddress_Y = AbsoluteWithOffset(Cycles, memory, Y);
+            WriteByte(A, AbsoluteAddress_Y, Cycles, memory);
         }
         break;
 
@@ -258,11 +258,35 @@ cpu6502::s32 cpu6502::CPU::Execute(s32 Cycles, Mem &memory)
         case INS_JSR:
         {
             Word SubroutineAddr = Fetch_Word(Cycles, memory);
-            WriteWord(PC - 1, SP, Cycles, memory);
-            SP += 2;
+            // Save PC in Stack
+            PushPCMinusOneToStack(Cycles, memory);
+            // Change PC to Jump Address
             PC = SubroutineAddr;
             Cycles--;
         }
+        break;
+
+        case INS_RTS:
+        {
+            // Get PC From Stack
+            Word ReturnAddress = PopWordFromStack(Cycles, memory);
+            PC = ReturnAddress + 1;
+            Cycles -= 2;
+        }
+        break; 
+        case INS_JMP_ABS:
+        {
+            Word AbsoluteAddress = Fetch_Word(Cycles, memory);
+            PC = AbsoluteAddress;
+        }
+        break;
+        case INS_JMP_IND:
+        {
+            Word AbsoluteAddress = Fetch_Word(Cycles, memory);
+            Word JumpAddress = ReadWord(Cycles, memory, AbsoluteAddress);
+            PC = JumpAddress;
+        }
+
         break;
         default:
             printf("\nInstruction %d not handled\n", Instruction);
@@ -286,12 +310,12 @@ cpu6502::Byte cpu6502::CPU::ZeroPageWithOffset(s32 &Cycles, Mem &memory, Byte &O
 cpu6502::Word cpu6502::CPU::AbsoluteWithOffset(s32 &Cycles, Mem &memory, Byte &OffSet)
 {
 
-    Word AbsoluteAdress = Fetch_Word(Cycles, memory);
-    Word AbsoluteAdress_Offset = AbsoluteAdress + OffSet;
-    bool CrossingPage = (AbsoluteAdress % 256) + OffSet > 0xFE;
+    Word AbsoluteAddress = Fetch_Word(Cycles, memory);
+    Word AbsoluteAddress_Offset = AbsoluteAddress + OffSet;
+    bool CrossingPage = (AbsoluteAddress % 256) + OffSet > 0xFE;
     if (CrossingPage)
     {
         Cycles--;
     }
-    return AbsoluteAdress_Offset;
+    return AbsoluteAddress_Offset;
 }

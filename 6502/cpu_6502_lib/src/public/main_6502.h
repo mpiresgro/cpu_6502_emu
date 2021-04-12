@@ -15,6 +15,7 @@ namespace cpu6502
     using s32 = signed int;
     struct Mem;
     struct CPU;
+    struct ProcessorFlags;
 }
 
 struct cpu6502::Mem
@@ -47,15 +48,8 @@ struct cpu6502::Mem
     }
 };
 
-struct cpu6502::CPU
+struct cpu6502::ProcessorFlags
 {
-
-    Word PC; // Program Counter
-    Word SP; // Stack Pointer (!! Should be Byte)
-
-    // Registers
-    Byte A; // Accumulator
-    Byte X, Y;
 
     // Status Flags - C++ bit field
     Byte C : 1;
@@ -63,15 +57,34 @@ struct cpu6502::CPU
     Byte I : 1;
     Byte D : 1;
     Byte B : 1;
+    Byte NotUsedBit : 1;
     Byte V : 1;
     Byte N : 1;
+};
 
-    void Reset(Mem &memory)
+struct cpu6502::CPU
+{
+
+    Word PC; // Program Counter
+    Byte SP; // Stack Pointer
+
+    // Registers
+    Byte A; // Accumulator
+    Byte X, Y;
+
+    union
     {
-        PC = 0xFFFC; // Reset Vector
-        SP = 0x0100;
+        Byte PS;
+        ProcessorFlags flags;
+    };
+
+    void Reset(Mem &memory, Word ResetVector = 0)
+    {
+        // Use 0xFFFC as default reset vector
+        PC = (ResetVector) ? ResetVector : 0xFFFC;
+        SP = 0xFF; // system stack ($0100-$01FF)
         A = X = Y = 0;
-        C = Z = I = D = B = V = N = 0;
+        flags.C = flags.Z = flags.I = flags.D = flags.B = flags.V = flags.N = 0;
         memory.Init();
     }
 
@@ -116,18 +129,48 @@ struct cpu6502::CPU
         return (HighByte << 8) | LowByte;
     }
 
-    void WriteWord(Word Value, u32 Address, s32 &Cycles,  Mem &memory)
+    void WriteWord(Word Value, u32 Address, s32 &Cycles, Mem &memory)
     {
         // Write two bytes
         memory[Address] = Value & 0xFF;     // get first byte
         memory[Address + 1] = (Value >> 8); // get second byte
-        Cycles -= 2;                      // Cycles pass by value;
+        Cycles -= 2;                        // Cycles pass by value;
     }
-    
+
+    Word SPTo16Address() const
+    {
+        // returns Stack Pointer as a 16bits address
+        return 0x100 | SP;
+    }
+
+    void PushWordToStack(s32 &Cycles, Mem &memory, Word Value)
+    {
+        // MSB
+        WriteByte(Value >> 8, SPTo16Address(), Cycles, memory);
+        SP--;
+        // LSB
+        WriteByte(Value & 0xFF, SPTo16Address(), Cycles, memory);
+        SP--;
+    }
+
+    void PushPCMinusOneToStack(s32 &Cycles, Mem &memory)
+    {
+        // Push the program counter into the Stack
+        PushWordToStack(Cycles, memory, PC - 1);
+    }
+
+    Word PopWordFromStack(s32 &Cycles, Mem &memory)
+    {
+        Word Value = ReadWord(Cycles, memory, SPTo16Address() + 1);
+        SP += 2;
+        Cycles--;
+        return Value;
+    }
+
     void Set_Zero_and_Negative_Flags(Byte Register)
     {
-        Z = (Register == 0);
-        N = (Register & 0b10000000) > 0;
+        flags.Z = (Register == 0);
+        flags.N = (Register & 0b10000000) > 0;
     }
 
     // Op Codes
@@ -162,7 +205,7 @@ struct cpu6502::CPU
         INS_STA_ABS_Y = 0x99,   // Store Accumulator Absolute Y Mode
         INS_STA_IND_X = 0x81,   // Store Accumulator Inderect X Mode
         INS_STA_IND_Y = 0x91,   // Store Accumulator Inderect Y Mode
-        
+
         INS_STX_ZEROP = 0x86,   // Store X Zero Page Mode
         INS_STX_ZEROP_Y = 0x96, // Store X Zero Page Y Mode
         INS_STX_ABS = 0x8E,     // Store X Absolute Mode
@@ -171,7 +214,10 @@ struct cpu6502::CPU
         INS_STY_ZEROP_X = 0x94, // Store Y Zero Page X Mode
         INS_STY_ABS = 0x8C,     // Store Y Absolute Mode
 
-        INS_JSR = 0x20; // Jump to Subroutine
+        INS_JSR = 0x20,     // Jump to Subroutine
+        INS_RTS = 0x60,     // Return from Subroutine
+        INS_JMP_ABS = 0x4C, // Jump Absolute
+        INS_JMP_IND = 0x6C; // Jump Indirect
 
     s32 Execute(s32 Cycles, Mem &memory);
 
