@@ -50,7 +50,6 @@ struct cpu6502::Mem
 
 struct cpu6502::ProcessorFlags
 {
-
     // Status Flags - C++ bit field
     Byte C : 1;
     Byte Z : 1;
@@ -173,9 +172,10 @@ struct cpu6502::CPU
         SP--;
     }
 
-    Byte PopByteFromStack(s32 &Cycles, Mem &memory){
+    Byte PopByteFromStack(s32 &Cycles, Mem &memory)
+    {
         Byte Value = ReadByte(Cycles, memory, SPTo16Address() + 1);
-        SP ++;
+        SP++;
         Cycles--;
         return Value;
     }
@@ -237,13 +237,29 @@ struct cpu6502::CPU
         INS_TSX = 0xBA, // Transfer stack pointer to X
         INS_TXS = 0x9A, // Transfer X to stack pointer
         INS_PHA = 0x48, // Transfer accumulator on to the stack
-        INS_PHP = 0x08, // Transfer status flags on to the stack 
+        INS_PHP = 0x08, // Transfer status flags on to the stack
         INS_PLA = 0x68, // Pull accumulator value from stack
-        INS_PLP = 0x28; // Pull status flags value from stack
+        INS_PLP = 0x28, // Pull status flags value from stack
+
+        // Logical Operations
+        INS_AND_IM = 0x29,      // AND Immediate Mode
+        INS_AND_ZERO_P = 0x25,  // AND Zero Page Mode
+        INS_AND_ZERO_PX = 0x35, // AND Zero Page X Mode
+        INS_AND_ABS = 0x2D,     // AND Absolute Mode
+        INS_AND_ABS_X = 0x3D,   // AND Absolute X Mode
+        INS_AND_ABS_Y = 0x39,   // AND Absolute Y Mode
+        INS_AND_IND_X = 0x21,   //AND Inderect X Mode
+        INS_AND_IND_Y = 0x31;   // AND Inderect Y Mode
 
     s32 Execute(s32 Cycles, Mem &memory);
 
     Byte ZeroPageWithOffset(s32 &Cycles, Mem &memory, Byte &OffSet);
 
     Word AbsoluteWithOffset(s32 &Cycles, Mem &memory, Byte &OffSet);
+
+    Word IndirectX(s32 &Cycles, Mem &memory);
+
+    Word IndirectY(s32 &Cycles, Mem &memory);
+
+    Word IndirectY_6(s32 &Cycles, Mem &memory);
 };
