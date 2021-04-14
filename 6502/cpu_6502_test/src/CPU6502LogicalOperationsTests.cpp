@@ -196,6 +196,7 @@ void CPU6502LogicalOperationsTests::LogicOpIndirectYMode(Byte Instruction, char 
     VerifyNotAffectedFlags(cpu, cpuCopy);
 }
 
+// AND &
 TEST_F(CPU6502LogicalOperationsTests, ANDImmediateMode)
 {
     LogicOpImmediateMode(CPU::INS_AND_IM, '&');
@@ -234,4 +235,45 @@ TEST_F(CPU6502LogicalOperationsTests, ANDIndirectXMode)
 TEST_F(CPU6502LogicalOperationsTests, ANDIndirectYMode)
 {
     LogicOpIndirectYMode(CPU::INS_AND_IND_Y, '&');
+}
+
+// EOR ^
+TEST_F(CPU6502LogicalOperationsTests, EORImmediateMode)
+{
+    LogicOpImmediateMode(CPU::INS_EOR_IM, '^');
+}
+
+TEST_F(CPU6502LogicalOperationsTests, EORZeroPageMode)
+{
+    LogicOpZeroPageMode(CPU::INS_EOR_ZERO_P, '^');
+}
+
+TEST_F(CPU6502LogicalOperationsTests, EORZeroPageXMode)
+{
+    LogicOpZeroPageXMode(CPU::INS_EOR_ZERO_PX, '^');
+}
+
+TEST_F(CPU6502LogicalOperationsTests, EORAbsoluteMode)
+{
+    LogicOpAbsoluteMode(CPU::INS_EOR_ABS, '^');
+}
+
+TEST_F(CPU6502LogicalOperationsTests, EORAbsoluteXMode)
+{
+    LogicOpAbsoluteOffsetMode(CPU::INS_EOR_ABS_X, '^', &CPU::X);
+}
+
+TEST_F(CPU6502LogicalOperationsTests, EORAbsoluteYMode)
+{
+    LogicOpAbsoluteOffsetMode(CPU::INS_EOR_ABS_Y, '^', &CPU::Y);
+}
+
+TEST_F(CPU6502LogicalOperationsTests, EORIndirectXMode)
+{
+    LogicOpIndirectXMode(CPU::INS_EOR_IND_X, '^');
+}
+
+TEST_F(CPU6502LogicalOperationsTests, EORIndirectYMode)
+{
+    LogicOpIndirectYMode(CPU::INS_EOR_IND_Y, '^');
 }

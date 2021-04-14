@@ -248,8 +248,18 @@ struct cpu6502::CPU
         INS_AND_ABS = 0x2D,     // AND Absolute Mode
         INS_AND_ABS_X = 0x3D,   // AND Absolute X Mode
         INS_AND_ABS_Y = 0x39,   // AND Absolute Y Mode
-        INS_AND_IND_X = 0x21,   //AND Inderect X Mode
-        INS_AND_IND_Y = 0x31;   // AND Inderect Y Mode
+        INS_AND_IND_X = 0x21,   // AND Inderect X Mode
+        INS_AND_IND_Y = 0x31,   // AND Inderect Y Mode
+
+        INS_EOR_IM = 0x49,      // EOR Immediate Mode
+        INS_EOR_ZERO_P = 0x45,  // EOR Zero Page Mode
+        INS_EOR_ZERO_PX = 0x55, // EOR Zero Page X Mode
+        INS_EOR_ABS = 0x4D,     // EOR Absolute Mode
+        INS_EOR_ABS_X = 0x5D,   // EOR Absolute X Mode
+        INS_EOR_ABS_Y = 0x59,   // EOR Absolute Y Mode
+        INS_EOR_IND_X = 0x41,   // EOR Inderect X Mode
+        INS_EOR_IND_Y = 0x51;   // EOR Inderect Y Mode
+
 
     s32 Execute(s32 Cycles, Mem &memory);
 
