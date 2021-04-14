@@ -186,6 +186,12 @@ struct cpu6502::CPU
         flags.N = (Register & 0b10000000) > 0;
     }
 
+    void Set_BIT_Flags(Byte Value)
+    {
+        Set_Zero_and_Negative_Flags(Value);
+        flags.V = (Value & 0b01000000) > 0;
+    }
+
     // Op Codes
     static constexpr Byte
         // Load Register
@@ -267,7 +273,10 @@ struct cpu6502::CPU
         INS_ORA_ABS_X = 0x1D,   // ORA Absolute X Mode
         INS_ORA_ABS_Y = 0x19,   // ORA Absolute Y Mode
         INS_ORA_IND_X = 0x01,   // ORA Inderect X Mode
-        INS_ORA_IND_Y = 0x11;   // ORA Inderect Y Mode
+        INS_ORA_IND_Y = 0x11,   // ORA Inderect Y Mode
+
+        INS_BIT_ZERO_P = 0x24, // BIT Zero Page Mode
+        INS_BIT_ABS = 0x2C;    // BIT Absolute Mode
 
     s32 Execute(s32 Cycles, Mem &memory);
 

@@ -505,6 +505,22 @@ cpu6502::s32 cpu6502::CPU::Execute(s32 Cycles, Mem &memory)
         }
         break;
 
+        case INS_BIT_ZERO_P:
+        {
+            Byte ZeroPageAddress = Fetch_Byte(Cycles, memory);
+            Byte Value = A & ReadByte(Cycles, memory, ZeroPageAddress);
+            Set_BIT_Flags(Value);
+        }
+        break;
+
+        case INS_BIT_ABS:
+        {
+            Word AbsoluteAddress = Fetch_Word(Cycles, memory);
+            Byte Value = A & ReadByte(Cycles, memory, AbsoluteAddress);
+            Set_BIT_Flags(Value);
+        }
+        break;
+
         default:
             printf("\nInstruction %d not handled\n", Instruction);
             throw -1;

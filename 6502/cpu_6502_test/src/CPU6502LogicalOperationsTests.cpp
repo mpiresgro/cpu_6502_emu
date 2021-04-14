@@ -278,7 +278,6 @@ TEST_F(CPU6502LogicalOperationsTests, EORIndirectYMode)
     LogicOpIndirectYMode(CPU::INS_EOR_IND_Y, '^');
 }
 
-
 // ORA ^
 TEST_F(CPU6502LogicalOperationsTests, ORAImmediateMode)
 {
@@ -318,4 +317,51 @@ TEST_F(CPU6502LogicalOperationsTests, ORAIndirectXMode)
 TEST_F(CPU6502LogicalOperationsTests, ORAIndirectYMode)
 {
     LogicOpIndirectYMode(CPU::INS_ORA_IND_Y, '|');
+}
+
+TEST_F(CPU6502LogicalOperationsTests, BITZeroPageMode)
+{
+    // Given:
+    cpu.A = 0b11110100;
+    mem[0xFFFC] = CPU::INS_BIT_ZERO_P;
+    mem[0xFFFD] = 0x22;
+    mem[0x0022] = 0b01001011;
+    CPU cpuCopy = cpu;
+    constexpr s32 CyclesExpected = 3;
+    // When:
+    s32 CyclesUsed = cpu.Execute(CyclesExpected, mem);
+    // Then:
+    EXPECT_EQ(cpu.flags.Z, false);
+    EXPECT_EQ(cpu.flags.V, true);
+    EXPECT_EQ(cpu.flags.N, false);
+    EXPECT_EQ(CyclesUsed, CyclesExpected);
+    // Not affected flags by BIT
+    EXPECT_EQ(cpu.flags.C, cpuCopy.flags.C);
+    EXPECT_EQ(cpu.flags.I, cpuCopy.flags.I);
+    EXPECT_EQ(cpu.flags.D, cpuCopy.flags.D);
+    EXPECT_EQ(cpu.flags.B, cpuCopy.flags.B);
+}
+
+TEST_F(CPU6502LogicalOperationsTests, BITAbsoluteMode)
+{
+    // Given:
+    cpu.A =  0b10110100;
+    mem[0xFFFC] =  CPU::INS_BIT_ABS;
+    mem[0xFFFD] = 0x80;
+    mem[0xFFFE] = 0x44;
+    mem[0x4480] = 0b01001011;
+    constexpr s32 CyclesExpected = 4;
+    CPU cpuCopy = cpu;
+    // When:
+    s32 CyclesUsed = cpu.Execute(CyclesExpected, mem);
+    // Then:
+    EXPECT_EQ(cpu.flags.Z, true);
+    EXPECT_EQ(cpu.flags.V, false);
+    EXPECT_EQ(cpu.flags.N, false);
+    EXPECT_EQ(CyclesUsed, CyclesExpected);
+    // Not affected flags by BIT
+    EXPECT_EQ(cpu.flags.C, cpuCopy.flags.C);
+    EXPECT_EQ(cpu.flags.I, cpuCopy.flags.I);
+    EXPECT_EQ(cpu.flags.D, cpuCopy.flags.D);
+    EXPECT_EQ(cpu.flags.B, cpuCopy.flags.B);
 }
