@@ -8,6 +8,21 @@ cpu6502::s32 cpu6502::CPU::Execute(s32 Cycles, Mem &memory)
         Set_Zero_and_Negative_Flags(Register);
     };
 
+    auto And = [&Cycles, &memory, this](Word Address) {
+        A &= ReadByte(Cycles, memory, Address);
+        Set_Zero_and_Negative_Flags(A);
+    };
+
+    auto Eor = [&Cycles, &memory, this](Word Address) {
+        A ^= ReadByte(Cycles, memory, Address);
+        Set_Zero_and_Negative_Flags(A);
+    };
+
+    auto Ora = [&Cycles, &memory, this](Word Address) {
+        A |= ReadByte(Cycles, memory, Address);
+        Set_Zero_and_Negative_Flags(A);
+    };
+
     const s32 CyclesRequested = Cycles;
     while (Cycles > 0)
     {
@@ -326,56 +341,49 @@ cpu6502::s32 cpu6502::CPU::Execute(s32 Cycles, Mem &memory)
         case INS_AND_ZERO_P:
         {
             Byte ZeroPageAddress = Fetch_Byte(Cycles, memory);
-            A &= ReadByte(Cycles, memory, ZeroPageAddress);
-            Set_Zero_and_Negative_Flags(A);
+            And(ZeroPageAddress);
         }
         break;
 
         case INS_AND_ZERO_PX:
         {
             Byte ZeroPageXOffsetAddress = ZeroPageWithOffset(Cycles, memory, X);
-            A &= ReadByte(Cycles, memory, ZeroPageXOffsetAddress);
-            Set_Zero_and_Negative_Flags(A);
+            And(ZeroPageXOffsetAddress);
         }
         break;
 
         case INS_AND_ABS:
         {
             Word AbsoluteAddress = Fetch_Word(Cycles, memory);
-            A &= ReadByte(Cycles, memory, AbsoluteAddress);
-            Set_Zero_and_Negative_Flags(A);
+            And(AbsoluteAddress);
         }
         break;
 
         case INS_AND_ABS_X:
         {
             Word AbsoluteXAddress = AbsoluteWithOffset(Cycles, memory, X);
-            A &= ReadByte(Cycles, memory, AbsoluteXAddress);
-            Set_Zero_and_Negative_Flags(A);
+            And(AbsoluteXAddress);
         }
         break;
 
         case INS_AND_ABS_Y:
         {
             Word AbsoluteYAddress = AbsoluteWithOffset(Cycles, memory, Y);
-            A &= ReadByte(Cycles, memory, AbsoluteYAddress);
-            Set_Zero_and_Negative_Flags(A);
+            And(AbsoluteYAddress);
         }
         break;
 
         case INS_AND_IND_X:
         {
             Word EffectiveAddress = IndirectX(Cycles, memory);
-            A &= ReadByte(Cycles, memory, EffectiveAddress);
-            Set_Zero_and_Negative_Flags(A);
+            And(EffectiveAddress);
         }
         break;
 
         case INS_AND_IND_Y:
         {
             Word EffectiveAddress = IndirectY(Cycles, memory);
-            A &= ReadByte(Cycles, memory, EffectiveAddress);
-            Set_Zero_and_Negative_Flags(A);
+            And(EffectiveAddress);
         }
         break;
 
@@ -389,56 +397,49 @@ cpu6502::s32 cpu6502::CPU::Execute(s32 Cycles, Mem &memory)
         case INS_EOR_ZERO_P:
         {
             Byte ZeroPageAddress = Fetch_Byte(Cycles, memory);
-            A ^= ReadByte(Cycles, memory, ZeroPageAddress);
-            Set_Zero_and_Negative_Flags(A);
+            Eor(ZeroPageAddress);
         }
         break;
 
         case INS_EOR_ZERO_PX:
         {
             Byte ZeroPageXOffsetAddress = ZeroPageWithOffset(Cycles, memory, X);
-            A ^= ReadByte(Cycles, memory, ZeroPageXOffsetAddress);
-            Set_Zero_and_Negative_Flags(A);
+            Eor(ZeroPageXOffsetAddress);
         }
         break;
 
         case INS_EOR_ABS:
         {
             Word AbsoluteAddress = Fetch_Word(Cycles, memory);
-            A ^= ReadByte(Cycles, memory, AbsoluteAddress);
-            Set_Zero_and_Negative_Flags(A);
+            Eor(AbsoluteAddress);
         }
         break;
 
         case INS_EOR_ABS_X:
         {
             Word AbsoluteXAddress = AbsoluteWithOffset(Cycles, memory, X);
-            A ^= ReadByte(Cycles, memory, AbsoluteXAddress);
-            Set_Zero_and_Negative_Flags(A);
+            Eor(AbsoluteXAddress);
         }
         break;
 
         case INS_EOR_ABS_Y:
         {
             Word AbsoluteYAddress = AbsoluteWithOffset(Cycles, memory, Y);
-            A ^= ReadByte(Cycles, memory, AbsoluteYAddress);
-            Set_Zero_and_Negative_Flags(A);
+            Eor(AbsoluteYAddress);
         }
         break;
 
         case INS_EOR_IND_X:
         {
             Word EffectiveAddress = IndirectX(Cycles, memory);
-            A ^= ReadByte(Cycles, memory, EffectiveAddress);
-            Set_Zero_and_Negative_Flags(A);
+            Eor(EffectiveAddress);
         }
         break;
 
         case INS_EOR_IND_Y:
         {
             Word EffectiveAddress = IndirectY(Cycles, memory);
-            A ^= ReadByte(Cycles, memory, EffectiveAddress);
-            Set_Zero_and_Negative_Flags(A);
+            Eor(EffectiveAddress);
         }
         break;
 
@@ -452,56 +453,49 @@ cpu6502::s32 cpu6502::CPU::Execute(s32 Cycles, Mem &memory)
         case INS_ORA_ZERO_P:
         {
             Byte ZeroPageAddress = Fetch_Byte(Cycles, memory);
-            A |= ReadByte(Cycles, memory, ZeroPageAddress);
-            Set_Zero_and_Negative_Flags(A);
+            Ora(ZeroPageAddress);
         }
         break;
 
         case INS_ORA_ZERO_PX:
         {
             Byte ZeroPageXOffsetAddress = ZeroPageWithOffset(Cycles, memory, X);
-            A |= ReadByte(Cycles, memory, ZeroPageXOffsetAddress);
-            Set_Zero_and_Negative_Flags(A);
+            Ora(ZeroPageXOffsetAddress);
         }
         break;
 
         case INS_ORA_ABS:
         {
             Word AbsoluteAddress = Fetch_Word(Cycles, memory);
-            A |= ReadByte(Cycles, memory, AbsoluteAddress);
-            Set_Zero_and_Negative_Flags(A);
+            Ora(AbsoluteAddress);
         }
         break;
 
         case INS_ORA_ABS_X:
         {
             Word AbsoluteXAddress = AbsoluteWithOffset(Cycles, memory, X);
-            A |= ReadByte(Cycles, memory, AbsoluteXAddress);
-            Set_Zero_and_Negative_Flags(A);
+            Ora(AbsoluteXAddress);
         }
         break;
 
         case INS_ORA_ABS_Y:
         {
             Word AbsoluteYAddress = AbsoluteWithOffset(Cycles, memory, Y);
-            A |= ReadByte(Cycles, memory, AbsoluteYAddress);
-            Set_Zero_and_Negative_Flags(A);
+            Ora(AbsoluteYAddress);
         }
         break;
 
         case INS_ORA_IND_X:
         {
             Word EffectiveAddress = IndirectX(Cycles, memory);
-            A |= ReadByte(Cycles, memory, EffectiveAddress);
-            Set_Zero_and_Negative_Flags(A);
+            Ora(EffectiveAddress);
         }
         break;
 
         case INS_ORA_IND_Y:
         {
             Word EffectiveAddress = IndirectY(Cycles, memory);
-            A |= ReadByte(Cycles, memory, EffectiveAddress);
-            Set_Zero_and_Negative_Flags(A);
+            Ora(EffectiveAddress);
         }
         break;
 
