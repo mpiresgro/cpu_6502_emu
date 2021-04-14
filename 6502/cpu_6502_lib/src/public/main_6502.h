@@ -258,8 +258,16 @@ struct cpu6502::CPU
         INS_EOR_ABS_X = 0x5D,   // EOR Absolute X Mode
         INS_EOR_ABS_Y = 0x59,   // EOR Absolute Y Mode
         INS_EOR_IND_X = 0x41,   // EOR Inderect X Mode
-        INS_EOR_IND_Y = 0x51;   // EOR Inderect Y Mode
+        INS_EOR_IND_Y = 0x51,   // EOR Inderect Y Mode
 
+        INS_ORA_IM = 0x09,      // ORA Immediate Mode
+        INS_ORA_ZERO_P = 0x05,  // ORA Zero Page Mode
+        INS_ORA_ZERO_PX = 0x15, // ORA Zero Page X Mode
+        INS_ORA_ABS = 0x0D,     // ORA Absolute Mode
+        INS_ORA_ABS_X = 0x1D,   // ORA Absolute X Mode
+        INS_ORA_ABS_Y = 0x19,   // ORA Absolute Y Mode
+        INS_ORA_IND_X = 0x01,   // ORA Inderect X Mode
+        INS_ORA_IND_Y = 0x11;   // ORA Inderect Y Mode
 
     s32 Execute(s32 Cycles, Mem &memory);
 

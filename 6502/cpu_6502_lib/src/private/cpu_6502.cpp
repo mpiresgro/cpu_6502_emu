@@ -441,6 +441,70 @@ cpu6502::s32 cpu6502::CPU::Execute(s32 Cycles, Mem &memory)
             Set_Zero_and_Negative_Flags(A);
         }
         break;
+
+        case INS_ORA_IM:
+        {
+            A |= Fetch_Byte(Cycles, memory);
+            Set_Zero_and_Negative_Flags(A);
+        }
+        break;
+
+        case INS_ORA_ZERO_P:
+        {
+            Byte ZeroPageAddress = Fetch_Byte(Cycles, memory);
+            A |= ReadByte(Cycles, memory, ZeroPageAddress);
+            Set_Zero_and_Negative_Flags(A);
+        }
+        break;
+
+        case INS_ORA_ZERO_PX:
+        {
+            Byte ZeroPageXOffsetAddress = ZeroPageWithOffset(Cycles, memory, X);
+            A |= ReadByte(Cycles, memory, ZeroPageXOffsetAddress);
+            Set_Zero_and_Negative_Flags(A);
+        }
+        break;
+
+        case INS_ORA_ABS:
+        {
+            Word AbsoluteAddress = Fetch_Word(Cycles, memory);
+            A |= ReadByte(Cycles, memory, AbsoluteAddress);
+            Set_Zero_and_Negative_Flags(A);
+        }
+        break;
+
+        case INS_ORA_ABS_X:
+        {
+            Word AbsoluteXAddress = AbsoluteWithOffset(Cycles, memory, X);
+            A |= ReadByte(Cycles, memory, AbsoluteXAddress);
+            Set_Zero_and_Negative_Flags(A);
+        }
+        break;
+
+        case INS_ORA_ABS_Y:
+        {
+            Word AbsoluteYAddress = AbsoluteWithOffset(Cycles, memory, Y);
+            A |= ReadByte(Cycles, memory, AbsoluteYAddress);
+            Set_Zero_and_Negative_Flags(A);
+        }
+        break;
+
+        case INS_ORA_IND_X:
+        {
+            Word EffectiveAddress = IndirectX(Cycles, memory);
+            A |= ReadByte(Cycles, memory, EffectiveAddress);
+            Set_Zero_and_Negative_Flags(A);
+        }
+        break;
+
+        case INS_ORA_IND_Y:
+        {
+            Word EffectiveAddress = IndirectY(Cycles, memory);
+            A |= ReadByte(Cycles, memory, EffectiveAddress);
+            Set_Zero_and_Negative_Flags(A);
+        }
+        break;
+
         default:
             printf("\nInstruction %d not handled\n", Instruction);
             throw -1;

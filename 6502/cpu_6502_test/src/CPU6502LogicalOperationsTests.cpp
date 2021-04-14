@@ -277,3 +277,45 @@ TEST_F(CPU6502LogicalOperationsTests, EORIndirectYMode)
 {
     LogicOpIndirectYMode(CPU::INS_EOR_IND_Y, '^');
 }
+
+
+// ORA ^
+TEST_F(CPU6502LogicalOperationsTests, ORAImmediateMode)
+{
+    LogicOpImmediateMode(CPU::INS_ORA_IM, '|');
+}
+
+TEST_F(CPU6502LogicalOperationsTests, ORAZeroPageMode)
+{
+    LogicOpZeroPageMode(CPU::INS_ORA_ZERO_P, '|');
+}
+
+TEST_F(CPU6502LogicalOperationsTests, ORAZeroPageXMode)
+{
+    LogicOpZeroPageXMode(CPU::INS_ORA_ZERO_PX, '|');
+}
+
+TEST_F(CPU6502LogicalOperationsTests, ORAAbsoluteMode)
+{
+    LogicOpAbsoluteMode(CPU::INS_ORA_ABS, '|');
+}
+
+TEST_F(CPU6502LogicalOperationsTests, ORAAbsoluteXMode)
+{
+    LogicOpAbsoluteOffsetMode(CPU::INS_ORA_ABS_X, '|', &CPU::X);
+}
+
+TEST_F(CPU6502LogicalOperationsTests, ORAAbsoluteYMode)
+{
+    LogicOpAbsoluteOffsetMode(CPU::INS_ORA_ABS_Y, '|', &CPU::Y);
+}
+
+TEST_F(CPU6502LogicalOperationsTests, ORAIndirectXMode)
+{
+    LogicOpIndirectXMode(CPU::INS_ORA_IND_X, '|');
+}
+
+TEST_F(CPU6502LogicalOperationsTests, ORAIndirectYMode)
+{
+    LogicOpIndirectYMode(CPU::INS_ORA_IND_Y, '|');
+}
