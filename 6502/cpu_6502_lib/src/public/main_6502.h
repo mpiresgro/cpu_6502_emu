@@ -50,7 +50,6 @@ struct cpu6502::Mem
 
 struct cpu6502::ProcessorFlags
 {
-
     // Status Flags - C++ bit field
     Byte C : 1;
     Byte Z : 1;
@@ -173,9 +172,10 @@ struct cpu6502::CPU
         SP--;
     }
 
-    Byte PopByteFromStack(s32 &Cycles, Mem &memory){
+    Byte PopByteFromStack(s32 &Cycles, Mem &memory)
+    {
         Byte Value = ReadByte(Cycles, memory, SPTo16Address() + 1);
-        SP ++;
+        SP++;
         Cycles--;
         return Value;
     }
@@ -184,6 +184,12 @@ struct cpu6502::CPU
     {
         flags.Z = (Register == 0);
         flags.N = (Register & 0b10000000) > 0;
+    }
+
+    void Set_BIT_Flags(Byte Value)
+    {
+        Set_Zero_and_Negative_Flags(Value);
+        flags.V = (Value & 0b01000000) > 0;
     }
 
     // Op Codes
@@ -237,13 +243,50 @@ struct cpu6502::CPU
         INS_TSX = 0xBA, // Transfer stack pointer to X
         INS_TXS = 0x9A, // Transfer X to stack pointer
         INS_PHA = 0x48, // Transfer accumulator on to the stack
-        INS_PHP = 0x08, // Transfer status flags on to the stack 
+        INS_PHP = 0x08, // Transfer status flags on to the stack
         INS_PLA = 0x68, // Pull accumulator value from stack
-        INS_PLP = 0x28; // Pull status flags value from stack
+        INS_PLP = 0x28, // Pull status flags value from stack
+
+        // Logical Operations
+        INS_AND_IM = 0x29,      // AND Immediate Mode
+        INS_AND_ZERO_P = 0x25,  // AND Zero Page Mode
+        INS_AND_ZERO_PX = 0x35, // AND Zero Page X Mode
+        INS_AND_ABS = 0x2D,     // AND Absolute Mode
+        INS_AND_ABS_X = 0x3D,   // AND Absolute X Mode
+        INS_AND_ABS_Y = 0x39,   // AND Absolute Y Mode
+        INS_AND_IND_X = 0x21,   // AND Inderect X Mode
+        INS_AND_IND_Y = 0x31,   // AND Inderect Y Mode
+
+        INS_EOR_IM = 0x49,      // EOR Immediate Mode
+        INS_EOR_ZERO_P = 0x45,  // EOR Zero Page Mode
+        INS_EOR_ZERO_PX = 0x55, // EOR Zero Page X Mode
+        INS_EOR_ABS = 0x4D,     // EOR Absolute Mode
+        INS_EOR_ABS_X = 0x5D,   // EOR Absolute X Mode
+        INS_EOR_ABS_Y = 0x59,   // EOR Absolute Y Mode
+        INS_EOR_IND_X = 0x41,   // EOR Inderect X Mode
+        INS_EOR_IND_Y = 0x51,   // EOR Inderect Y Mode
+
+        INS_ORA_IM = 0x09,      // ORA Immediate Mode
+        INS_ORA_ZERO_P = 0x05,  // ORA Zero Page Mode
+        INS_ORA_ZERO_PX = 0x15, // ORA Zero Page X Mode
+        INS_ORA_ABS = 0x0D,     // ORA Absolute Mode
+        INS_ORA_ABS_X = 0x1D,   // ORA Absolute X Mode
+        INS_ORA_ABS_Y = 0x19,   // ORA Absolute Y Mode
+        INS_ORA_IND_X = 0x01,   // ORA Inderect X Mode
+        INS_ORA_IND_Y = 0x11,   // ORA Inderect Y Mode
+
+        INS_BIT_ZERO_P = 0x24, // BIT Zero Page Mode
+        INS_BIT_ABS = 0x2C;    // BIT Absolute Mode
 
     s32 Execute(s32 Cycles, Mem &memory);
 
     Byte ZeroPageWithOffset(s32 &Cycles, Mem &memory, Byte &OffSet);
 
     Word AbsoluteWithOffset(s32 &Cycles, Mem &memory, Byte &OffSet);
+
+    Word IndirectX(s32 &Cycles, Mem &memory);
+
+    Word IndirectY(s32 &Cycles, Mem &memory);
+
+    Word IndirectY_6(s32 &Cycles, Mem &memory);
 };

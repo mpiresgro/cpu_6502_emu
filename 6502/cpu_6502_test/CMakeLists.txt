@@ -43,6 +43,7 @@ set  (M6502_SOURCES
     "src/CPU6502LoadRegisterTests.cpp"
     "src/CPU6502StackOperationsTests.cpp"
     "src/CPU6502JumpsAndCallsTests.cpp"
+    "src/CPU6502LogicalOperationsTests.cpp"
     "src/CPU6502StoreRegisterTests.cpp")
 
 source_group("src" FILES ${M6502_SOURCES})

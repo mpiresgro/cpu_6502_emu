@@ -8,6 +8,21 @@ cpu6502::s32 cpu6502::CPU::Execute(s32 Cycles, Mem &memory)
         Set_Zero_and_Negative_Flags(Register);
     };
 
+    auto And = [&Cycles, &memory, this](Word Address) {
+        A &= ReadByte(Cycles, memory, Address);
+        Set_Zero_and_Negative_Flags(A);
+    };
+
+    auto Eor = [&Cycles, &memory, this](Word Address) {
+        A ^= ReadByte(Cycles, memory, Address);
+        Set_Zero_and_Negative_Flags(A);
+    };
+
+    auto Ora = [&Cycles, &memory, this](Word Address) {
+        A |= ReadByte(Cycles, memory, Address);
+        Set_Zero_and_Negative_Flags(A);
+    };
+
     const s32 CyclesRequested = Cycles;
     while (Cycles > 0)
     {
@@ -135,25 +150,14 @@ cpu6502::s32 cpu6502::CPU::Execute(s32 Cycles, Mem &memory)
 
         case INS_LDA_IND_X:
         {
-            // TODO: Check if INS_LDA_IND_X needs CrossingPage check
-            Byte ZAddress = Fetch_Byte(Cycles, memory);
-            ZAddress += X;
-            Cycles--;
-            Word EffectiveAddress = ReadWord(Cycles, memory, ZAddress);
+            Word EffectiveAddress = IndirectX(Cycles, memory);
             LoadRegister(A, EffectiveAddress);
         }
         break;
 
         case INS_LDA_IND_Y:
         {
-            Byte ZAddress = Fetch_Byte(Cycles, memory);
-            Word EffectiveAddress = ReadWord(Cycles, memory, ZAddress);
-            Word EffectiveAddress_Y = EffectiveAddress + Y;
-            bool CrossingPage = (EffectiveAddress % 256) + Y > 0xFE;
-            if (CrossingPage)
-            {
-                Cycles--;
-            }
+            Word EffectiveAddress_Y = IndirectY(Cycles, memory);
             LoadRegister(A, EffectiveAddress_Y);
         }
         break;
@@ -237,20 +241,15 @@ cpu6502::s32 cpu6502::CPU::Execute(s32 Cycles, Mem &memory)
 
         case INS_STA_IND_X:
         {
-            Byte ZAddress = Fetch_Byte(Cycles, memory);
-            ZAddress += X;
-            Cycles--;
-            Word EffectiveAddress = ReadWord(Cycles, memory, ZAddress);
+            Word EffectiveAddress = IndirectX(Cycles, memory);
             WriteByte(A, EffectiveAddress, Cycles, memory);
         }
         break;
 
         case INS_STA_IND_Y:
         {
-            Byte ZAddress = Fetch_Byte(Cycles, memory);
-            Word EffectiveAddress = ReadWord(Cycles, memory, ZAddress);
-            Word EffectiveAddress_Y = EffectiveAddress + Y;
-            Cycles--;
+            // Uses 6 Cycles - No CrossingPageCheck
+            Word EffectiveAddress_Y = IndirectY_6(Cycles, memory);
             WriteByte(A, EffectiveAddress_Y, Cycles, memory);
         }
         break;
@@ -332,6 +331,190 @@ cpu6502::s32 cpu6502::CPU::Execute(s32 Cycles, Mem &memory)
         }
         break;
 
+        case INS_AND_IM:
+        {
+            A &= Fetch_Byte(Cycles, memory);
+            Set_Zero_and_Negative_Flags(A);
+        }
+        break;
+
+        case INS_AND_ZERO_P:
+        {
+            Byte ZeroPageAddress = Fetch_Byte(Cycles, memory);
+            And(ZeroPageAddress);
+        }
+        break;
+
+        case INS_AND_ZERO_PX:
+        {
+            Byte ZeroPageXOffsetAddress = ZeroPageWithOffset(Cycles, memory, X);
+            And(ZeroPageXOffsetAddress);
+        }
+        break;
+
+        case INS_AND_ABS:
+        {
+            Word AbsoluteAddress = Fetch_Word(Cycles, memory);
+            And(AbsoluteAddress);
+        }
+        break;
+
+        case INS_AND_ABS_X:
+        {
+            Word AbsoluteXAddress = AbsoluteWithOffset(Cycles, memory, X);
+            And(AbsoluteXAddress);
+        }
+        break;
+
+        case INS_AND_ABS_Y:
+        {
+            Word AbsoluteYAddress = AbsoluteWithOffset(Cycles, memory, Y);
+            And(AbsoluteYAddress);
+        }
+        break;
+
+        case INS_AND_IND_X:
+        {
+            Word EffectiveAddress = IndirectX(Cycles, memory);
+            And(EffectiveAddress);
+        }
+        break;
+
+        case INS_AND_IND_Y:
+        {
+            Word EffectiveAddress = IndirectY(Cycles, memory);
+            And(EffectiveAddress);
+        }
+        break;
+
+        case INS_EOR_IM:
+        {
+            A ^= Fetch_Byte(Cycles, memory);
+            Set_Zero_and_Negative_Flags(A);
+        }
+        break;
+
+        case INS_EOR_ZERO_P:
+        {
+            Byte ZeroPageAddress = Fetch_Byte(Cycles, memory);
+            Eor(ZeroPageAddress);
+        }
+        break;
+
+        case INS_EOR_ZERO_PX:
+        {
+            Byte ZeroPageXOffsetAddress = ZeroPageWithOffset(Cycles, memory, X);
+            Eor(ZeroPageXOffsetAddress);
+        }
+        break;
+
+        case INS_EOR_ABS:
+        {
+            Word AbsoluteAddress = Fetch_Word(Cycles, memory);
+            Eor(AbsoluteAddress);
+        }
+        break;
+
+        case INS_EOR_ABS_X:
+        {
+            Word AbsoluteXAddress = AbsoluteWithOffset(Cycles, memory, X);
+            Eor(AbsoluteXAddress);
+        }
+        break;
+
+        case INS_EOR_ABS_Y:
+        {
+            Word AbsoluteYAddress = AbsoluteWithOffset(Cycles, memory, Y);
+            Eor(AbsoluteYAddress);
+        }
+        break;
+
+        case INS_EOR_IND_X:
+        {
+            Word EffectiveAddress = IndirectX(Cycles, memory);
+            Eor(EffectiveAddress);
+        }
+        break;
+
+        case INS_EOR_IND_Y:
+        {
+            Word EffectiveAddress = IndirectY(Cycles, memory);
+            Eor(EffectiveAddress);
+        }
+        break;
+
+        case INS_ORA_IM:
+        {
+            A |= Fetch_Byte(Cycles, memory);
+            Set_Zero_and_Negative_Flags(A);
+        }
+        break;
+
+        case INS_ORA_ZERO_P:
+        {
+            Byte ZeroPageAddress = Fetch_Byte(Cycles, memory);
+            Ora(ZeroPageAddress);
+        }
+        break;
+
+        case INS_ORA_ZERO_PX:
+        {
+            Byte ZeroPageXOffsetAddress = ZeroPageWithOffset(Cycles, memory, X);
+            Ora(ZeroPageXOffsetAddress);
+        }
+        break;
+
+        case INS_ORA_ABS:
+        {
+            Word AbsoluteAddress = Fetch_Word(Cycles, memory);
+            Ora(AbsoluteAddress);
+        }
+        break;
+
+        case INS_ORA_ABS_X:
+        {
+            Word AbsoluteXAddress = AbsoluteWithOffset(Cycles, memory, X);
+            Ora(AbsoluteXAddress);
+        }
+        break;
+
+        case INS_ORA_ABS_Y:
+        {
+            Word AbsoluteYAddress = AbsoluteWithOffset(Cycles, memory, Y);
+            Ora(AbsoluteYAddress);
+        }
+        break;
+
+        case INS_ORA_IND_X:
+        {
+            Word EffectiveAddress = IndirectX(Cycles, memory);
+            Ora(EffectiveAddress);
+        }
+        break;
+
+        case INS_ORA_IND_Y:
+        {
+            Word EffectiveAddress = IndirectY(Cycles, memory);
+            Ora(EffectiveAddress);
+        }
+        break;
+
+        case INS_BIT_ZERO_P:
+        {
+            Byte ZeroPageAddress = Fetch_Byte(Cycles, memory);
+            Byte Value = A & ReadByte(Cycles, memory, ZeroPageAddress);
+            Set_BIT_Flags(Value);
+        }
+        break;
+
+        case INS_BIT_ABS:
+        {
+            Word AbsoluteAddress = Fetch_Word(Cycles, memory);
+            Byte Value = A & ReadByte(Cycles, memory, AbsoluteAddress);
+            Set_BIT_Flags(Value);
+        }
+        break;
+
         default:
             printf("\nInstruction %d not handled\n", Instruction);
             throw -1;
@@ -362,4 +545,33 @@ cpu6502::Word cpu6502::CPU::AbsoluteWithOffset(s32 &Cycles, Mem &memory, Byte &O
         Cycles--;
     }
     return AbsoluteAddress_Offset;
+}
+
+cpu6502::Word cpu6502::CPU::IndirectX(s32 &Cycles, Mem &memory)
+{
+    Byte ZAddress = Fetch_Byte(Cycles, memory);
+    ZAddress += X;
+    Cycles--;
+    return ReadWord(Cycles, memory, ZAddress);
+}
+
+cpu6502::Word cpu6502::CPU::IndirectY(s32 &Cycles, Mem &memory)
+{
+    Byte ZAddress = Fetch_Byte(Cycles, memory);
+    Word EffectiveAddress = ReadWord(Cycles, memory, ZAddress);
+    Word EffectiveAddress_Y = EffectiveAddress + Y;
+    bool CrossingPage = (EffectiveAddress % 256) + Y > 0xFE;
+    if (CrossingPage)
+    {
+        Cycles--;
+    }
+    return EffectiveAddress_Y;
+}
+
+cpu6502::Word cpu6502::CPU::IndirectY_6(s32 &Cycles, Mem &memory)
+{
+    Byte ZAddress = Fetch_Byte(Cycles, memory);
+    Word EffectiveAddress = ReadWord(Cycles, memory, ZAddress);
+    Cycles--;
+    return EffectiveAddress + Y;
 }
