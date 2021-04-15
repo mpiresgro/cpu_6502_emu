@@ -282,13 +282,31 @@ struct cpu6502::CPU
         INS_TAX = 0xAA, // Transfer accumulator to X
         INS_TAY = 0xA8, // Transfer accumulator to Y
         INS_TXA = 0x8A, // Transfer X to accumulator
-        INS_TYA = 0x98; // Transfer Y to accumulator
+        INS_TYA = 0x98, // Transfer Y to accumulator
+
+        // Increments & Decrements
+        INS_INC_ZERO_P = 0xE6,  // Increment a memory location Zero Page Mode
+        INS_INC_ZERO_PX = 0xF6, // Increment a memory location Zero Page X Mode
+        INS_INC_ABS = 0xEE,     // Increment a memory location Absolute Mode
+        INS_INC_ABS_X = 0xFE,   // Increment a memory location Absolute X Mode
+
+        INS_DEC_ZERO_P = 0xC6,  // Decrement a memory location Zero Page Mode
+        INS_DEC_ZERO_PX = 0xD6, // Decrement a memory location Zero Page X Mode
+        INS_DEC_ABS = 0xCE,     // Decrement a memory location Absolute Mode
+        INS_DEC_ABS_X = 0xDE,   // Decrement a memory location Absolute X Mode
+
+        INS_INX = 0xE8, // Increment X Register
+        INS_INY = 0xC8, // Increment Y Register
+        INS_DEX = 0xCA, // Decrement X Register
+        INS_DEY = 0x88; // Decrement Y Register
 
     s32 Execute(s32 Cycles, Mem &memory);
 
     Byte ZeroPageWithOffset(s32 &Cycles, Mem &memory, Byte &OffSet);
 
     Word AbsoluteWithOffset(s32 &Cycles, Mem &memory, Byte &OffSet);
+
+    Word AbsoluteWithOffset_5(s32 &Cycles, Mem &memory, Byte &OffSet);
 
     Word IndirectX(s32 &Cycles, Mem &memory);
 

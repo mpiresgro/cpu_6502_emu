@@ -23,6 +23,20 @@ cpu6502::s32 cpu6502::CPU::Execute(s32 Cycles, Mem &memory)
         Set_Zero_and_Negative_Flags(A);
     };
 
+    auto MemOp = [&Cycles, &memory, this](Word Address, char Operation) {
+        Byte Value = ReadByte(Cycles, memory, Address);
+        if (Operation == 'I')
+            Value++;
+        else if (Operation == 'D')
+            Value--;
+        else
+            throw -1;
+
+        Cycles--;
+        WriteByte(Value, Address, Cycles, memory);
+        Set_Zero_and_Negative_Flags(Value);
+    };
+
     const s32 CyclesRequested = Cycles;
     while (Cycles > 0)
     {
@@ -547,6 +561,94 @@ cpu6502::s32 cpu6502::CPU::Execute(s32 Cycles, Mem &memory)
         }
         break;
 
+        case INS_INC_ZERO_P:
+        {
+            Byte ZeroPageAddress = Fetch_Byte(Cycles, memory);
+            MemOp(ZeroPageAddress, 'I');
+        }
+        break;
+
+        case INS_INC_ZERO_PX:
+        {
+            Byte ZeroPageXOffsetAddress = ZeroPageWithOffset(Cycles, memory, X);
+            MemOp(ZeroPageXOffsetAddress, 'I');
+        }
+        break;
+
+        case INS_INC_ABS:
+        {
+            Word AbsoluteAddress = Fetch_Word(Cycles, memory);
+            MemOp(AbsoluteAddress, 'I');
+        }
+        break;
+
+        case INS_INC_ABS_X:
+        {
+            Word AbsoluteXAddress = AbsoluteWithOffset_5(Cycles, memory, X);
+            MemOp(AbsoluteXAddress, 'I');
+        }
+        break;
+
+        case INS_DEC_ZERO_P:
+        {
+            Byte ZeroPageAddress = Fetch_Byte(Cycles, memory);
+            MemOp(ZeroPageAddress, 'D');
+        }
+        break;
+
+        case INS_DEC_ZERO_PX:
+        {
+            Byte ZeroPageXOffsetAddress = ZeroPageWithOffset(Cycles, memory, X);
+            MemOp(ZeroPageXOffsetAddress, 'D');
+        }
+        break;
+
+        case INS_DEC_ABS:
+        {
+            Word AbsoluteAddress = Fetch_Word(Cycles, memory);
+            MemOp(AbsoluteAddress, 'D');
+        }
+        break;
+
+        case INS_DEC_ABS_X:
+        {
+            Word AbsoluteXAddress = AbsoluteWithOffset_5(Cycles, memory, X);
+            MemOp(AbsoluteXAddress, 'D');
+        }
+        break;
+
+        case INS_INX:
+        {
+            X++;
+            Cycles--;
+            Set_Zero_and_Negative_Flags(X);
+        }
+        break;
+
+        case INS_INY:
+        {
+            Y++;
+            Cycles--;
+            Set_Zero_and_Negative_Flags(Y);
+        }
+        break;
+
+        case INS_DEX:
+        {
+            X--;
+            Cycles--;
+            Set_Zero_and_Negative_Flags(X);
+        }
+        break;
+
+        case INS_DEY:
+        {
+            Y--;
+            Cycles--;
+            Set_Zero_and_Negative_Flags(Y);
+        }
+        break;
+
         default:
             printf("\nInstruction %d not handled\n", Instruction);
             throw -1;
@@ -576,6 +678,15 @@ cpu6502::Word cpu6502::CPU::AbsoluteWithOffset(s32 &Cycles, Mem &memory, Byte &O
     {
         Cycles--;
     }
+    return AbsoluteAddress_Offset;
+}
+
+cpu6502::Word cpu6502::CPU::AbsoluteWithOffset_5(s32 &Cycles, Mem &memory, Byte &OffSet)
+{
+
+    Word AbsoluteAddress = Fetch_Word(Cycles, memory);
+    Word AbsoluteAddress_Offset = AbsoluteAddress + OffSet;
+    Cycles--;
     return AbsoluteAddress_Offset;
 }
 
