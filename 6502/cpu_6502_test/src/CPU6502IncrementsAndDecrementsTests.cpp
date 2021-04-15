@@ -22,6 +22,7 @@ public:
     void MemoryOperationZeroPageXMode(Byte Instruction, char Operation);
     void MemoryOperationAbsoluteMode(Byte Instruction, char Operation);
     void MemoryOperationAbsoluteXMode(Byte Instruction, char Operation);
+    void RegisterOperation(Byte Instruction, char Operation, Byte CPU::*Register);
 };
 
 void CPU6502IncrementsAndDecrementsTests::ChangeValue(char Operation, Byte &Value)
@@ -104,6 +105,21 @@ void CPU6502IncrementsAndDecrementsTests::MemoryOperationAbsoluteXMode(Byte Inst
     EXPECT_EQ(CyclesUsed, CyclesExpected);
 }
 
+void CPU6502IncrementsAndDecrementsTests::RegisterOperation(Byte Instruction, char Operation, Byte CPU::*Register)
+{
+    // Given
+    Byte Value = 0x84;
+    cpu.*Register = Value;
+    mem[0xFFFC] = Instruction;
+    s32 CyclesExpected = 2;
+    // When
+    s32 CyclesUsed = cpu.Execute(CyclesExpected, mem);
+    // Then
+    ChangeValue(Operation, Value);
+    EXPECT_EQ(cpu.*Register, Value);
+    EXPECT_EQ(CyclesUsed, CyclesExpected);
+}
+
 TEST_F(CPU6502IncrementsAndDecrementsTests, IncrementMemoryLocationZeroPageMode)
 {
     MemoryOperationZeroPageMode(CPU::INS_INC_ZERO_P, 'I');
@@ -142,4 +158,24 @@ TEST_F(CPU6502IncrementsAndDecrementsTests, DecrementMemoryLocationAbsoluteMode)
 TEST_F(CPU6502IncrementsAndDecrementsTests, DecrementMemoryLocationAbsoluteXMode)
 {
     MemoryOperationAbsoluteXMode(CPU::INS_DEC_ABS_X, 'D');
+}
+
+TEST_F(CPU6502IncrementsAndDecrementsTests, IncrementRegisterX)
+{
+  RegisterOperation(CPU::INS_INX, 'I', &CPU::X);
+}
+
+TEST_F(CPU6502IncrementsAndDecrementsTests, IncrementRegisterY)
+{
+  RegisterOperation(CPU::INS_INY, 'I', &CPU::Y);
+}
+
+TEST_F(CPU6502IncrementsAndDecrementsTests, DecrementRegisterX)
+{
+  RegisterOperation(CPU::INS_DEX, 'D', &CPU::X);
+}
+
+TEST_F(CPU6502IncrementsAndDecrementsTests, DecrementRegisterY)
+{
+  RegisterOperation(CPU::INS_DEY, 'D', &CPU::Y);
 }
