@@ -276,7 +276,13 @@ struct cpu6502::CPU
         INS_ORA_IND_Y = 0x11,   // ORA Inderect Y Mode
 
         INS_BIT_ZERO_P = 0x24, // BIT Zero Page Mode
-        INS_BIT_ABS = 0x2C;    // BIT Absolute Mode
+        INS_BIT_ABS = 0x2C,    // BIT Absolute Mode
+
+        // Register Transfers
+        INS_TAX = 0xAA, // Transfer accumulator to X
+        INS_TAY = 0xA8, // Transfer accumulator to Y
+        INS_TXA = 0x8A, // Transfer X to accumulator
+        INS_TYA = 0x98; // Transfer Y to accumulator
 
     s32 Execute(s32 Cycles, Mem &memory);
 

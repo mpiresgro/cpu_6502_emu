@@ -515,6 +515,38 @@ cpu6502::s32 cpu6502::CPU::Execute(s32 Cycles, Mem &memory)
         }
         break;
 
+        case INS_TAX:
+        {
+            X = A;
+            Cycles--;
+            Set_Zero_and_Negative_Flags(X);
+        }
+        break;
+
+        case INS_TAY:
+        {
+            Y = A;
+            Cycles--;
+            Set_Zero_and_Negative_Flags(Y);
+        }
+        break;
+
+        case INS_TXA:
+        {
+            A = X;
+            Cycles--;
+            Set_Zero_and_Negative_Flags(A);
+        }
+        break;
+
+        case INS_TYA:
+        {
+            A = Y;
+            Cycles--;
+            Set_Zero_and_Negative_Flags(A);
+        }
+        break;
+
         default:
             printf("\nInstruction %d not handled\n", Instruction);
             throw -1;
