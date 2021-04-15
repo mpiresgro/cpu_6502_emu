@@ -18,6 +18,9 @@ public:
     virtual void TearDown()
     {
     }
+    
+    void TransferAccumulatorToRegister(Byte Instruction, Byte CPU::*Register);
+    void TransferRegisterToAccumulator(Byte Instruction, Byte CPU::*Register);
 };
 
 static void VerifyNotAffectedFlags(cpu6502::CPU &cpu, cpu6502::CPU &cpuCopy)
@@ -30,70 +33,54 @@ static void VerifyNotAffectedFlags(cpu6502::CPU &cpu, cpu6502::CPU &cpuCopy)
     EXPECT_EQ(cpu.flags.V, cpuCopy.flags.V);
 }
 
-TEST_F(CPU6502RegisterTransferTests, TransferAccumulatorToX)
-{
+void CPU6502RegisterTransferTests::TransferAccumulatorToRegister(Byte Instruction, Byte CPU::*Register){
     // given:
     cpu.A = 0x20;
-    cpu.X = 0x40;
-    mem[0xFFFC] = CPU::INS_TAX;
+    cpu.*Register = 0x40;
+    mem[0xFFFC] = Instruction;
     constexpr s32 EXPECTED_CYCLES = 2;
     CPU CPUCopy = cpu;
     //when:
     s32 CyclesUsed = cpu.Execute(EXPECTED_CYCLES, mem);
     //then:
     EXPECT_EQ(cpu.A, 0x20);
-    EXPECT_EQ(cpu.X, 0x20);
+    EXPECT_EQ(cpu.*Register, 0x20);
     EXPECT_EQ(CyclesUsed, EXPECTED_CYCLES);
     VerifyNotAffectedFlags(cpu, CPUCopy);
+}
+
+void CPU6502RegisterTransferTests::TransferRegisterToAccumulator(Byte Instruction, Byte CPU::*Register){
+    // given:
+    cpu.A = 0x20;
+    cpu.*Register = 0x40;
+    mem[0xFFFC] = Instruction;
+    constexpr s32 EXPECTED_CYCLES = 2;
+    CPU CPUCopy = cpu;
+    //when:
+    s32 CyclesUsed = cpu.Execute(EXPECTED_CYCLES, mem);
+    //then:
+    EXPECT_EQ(cpu.A, 0x40);
+    EXPECT_EQ(cpu.*Register, 0x40);
+    EXPECT_EQ(CyclesUsed, EXPECTED_CYCLES);
+    VerifyNotAffectedFlags(cpu, CPUCopy);
+}
+
+TEST_F(CPU6502RegisterTransferTests, TransferAccumulatorToX)
+{
+    TransferAccumulatorToRegister(CPU::INS_TAX, &CPU::X);
 }
 
 TEST_F(CPU6502RegisterTransferTests, TransferAccumulatorToY)
 {
-    // given:
-    cpu.A = 0x20;
-    cpu.Y = 0x40;
-    mem[0xFFFC] = CPU::INS_TAY;
-    constexpr s32 EXPECTED_CYCLES = 2;
-    CPU CPUCopy = cpu;
-    //when:
-    s32 CyclesUsed = cpu.Execute(EXPECTED_CYCLES, mem);
-    //then:
-    EXPECT_EQ(cpu.A, 0x20);
-    EXPECT_EQ(cpu.Y, 0x20);
-    EXPECT_EQ(CyclesUsed, EXPECTED_CYCLES);
-    VerifyNotAffectedFlags(cpu, CPUCopy);
+    TransferAccumulatorToRegister(CPU::INS_TAY, &CPU::Y);
 }
 
 TEST_F(CPU6502RegisterTransferTests, TransferXToAccumulator)
 {
-    // given:
-    cpu.A = 0x20;
-    cpu.X = 0x40;
-    mem[0xFFFC] = CPU::INS_TXA;
-    constexpr s32 EXPECTED_CYCLES = 2;
-    CPU CPUCopy = cpu;
-    //when:
-    s32 CyclesUsed = cpu.Execute(EXPECTED_CYCLES, mem);
-    //then:
-    EXPECT_EQ(cpu.A, 0x40);
-    EXPECT_EQ(cpu.X, 0x40);
-    EXPECT_EQ(CyclesUsed, EXPECTED_CYCLES);
-    VerifyNotAffectedFlags(cpu, CPUCopy);
+    TransferRegisterToAccumulator(CPU::INS_TXA, &CPU::X);
 }
 
 TEST_F(CPU6502RegisterTransferTests, TransferYToAccumulator)
 {
-    // given:
-    cpu.A = 0x20;
-    cpu.Y = 0x40;
-    mem[0xFFFC] = CPU::INS_TYA;
-    constexpr s32 EXPECTED_CYCLES = 2;
-    CPU CPUCopy = cpu;
-    //when:
-    s32 CyclesUsed = cpu.Execute(EXPECTED_CYCLES, mem);
-    //then:
-    EXPECT_EQ(cpu.A, 0x40);
-    EXPECT_EQ(cpu.Y, 0x40);
-    EXPECT_EQ(CyclesUsed, EXPECTED_CYCLES);
-    VerifyNotAffectedFlags(cpu, CPUCopy);
+    TransferRegisterToAccumulator(CPU::INS_TYA, &CPU::Y);
 }
