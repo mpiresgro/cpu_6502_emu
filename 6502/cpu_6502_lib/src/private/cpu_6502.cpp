@@ -649,6 +649,62 @@ cpu6502::s32 cpu6502::CPU::Execute(s32 Cycles, Mem &memory)
         }
         break;
 
+        case INS_BCC:
+        {
+            sByte Value = Fetch_Byte(Cycles, memory);
+            BranchOperation(Cycles, St.flags.C, Value, 'C');
+        }
+        break;
+
+        case INS_BCS:
+        {
+            sByte Value = Fetch_Byte(Cycles, memory);
+            BranchOperation(Cycles, St.flags.C, Value, 'S');
+        }
+        break;
+
+        case INS_BEQ:
+        {
+            sByte Value = Fetch_Byte(Cycles, memory);
+            BranchOperation(Cycles, St.flags.Z, Value, 'S');
+        }
+        break;
+
+        case INS_BMI:
+        {
+            sByte Value = Fetch_Byte(Cycles, memory);
+            BranchOperation(Cycles, St.flags.N, Value, 'S');
+        }
+        break;
+
+        case INS_BNE:
+        {
+            sByte Value = Fetch_Byte(Cycles, memory);
+            BranchOperation(Cycles, St.flags.Z, Value, 'C');
+        }
+        break;
+
+        case INS_BPL:
+        {
+            sByte Value = Fetch_Byte(Cycles, memory);
+            BranchOperation(Cycles, St.flags.N, Value, 'C');
+        }
+        break;
+
+        case INS_BVC:
+        {
+            sByte Value = Fetch_Byte(Cycles, memory);
+            BranchOperation(Cycles, St.flags.V, Value, 'C');
+        }
+        break;
+
+        case INS_BVS:
+        {
+            sByte Value = Fetch_Byte(Cycles, memory);
+            BranchOperation(Cycles, St.flags.V, Value, 'S');
+        }
+        break;
+
         default:
             printf("\nInstruction %d not handled\n", Instruction);
             throw -1;
@@ -717,4 +773,34 @@ cpu6502::Word cpu6502::CPU::IndirectY_6(s32 &Cycles, Mem &memory)
     Word EffectiveAddress = ReadWord(Cycles, memory, ZAddress);
     Cycles--;
     return EffectiveAddress + Y;
+}
+
+void cpu6502::CPU::BranchOperation(s32 &Cycles, Byte Flag, sByte Value, char Operation)
+{
+    Word PrePC = PC;
+    if (Operation == 'C')
+    {
+        if (!Flag) // Clear Operation
+        {
+            PC += Value;
+            Cycles--;
+        }
+    }
+    else if (Operation == 'S')
+    {
+        if (Flag) // Set Operation
+        {
+            PC += Value;
+            Cycles--;
+        }
+    }
+    else
+    {
+        printf("BranchOperation Error!"); // Operation Not Handled!
+        throw -1;
+    }
+
+    if ((PrePC >> 8) != (PC >> 8)) // Check page cross
+        Cycles--;  
+
 }

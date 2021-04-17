@@ -46,6 +46,7 @@ set  (M6502_SOURCES
     "src/CPU6502LogicalOperationsTests.cpp"
     "src/CPU6502RegisterTransferTests.cpp"
     "src/CPU6502IncrementsAndDecrementsTests.cpp"
+    "src/CPU6502BranchesTests.cpp"
     "src/CPU6502StoreRegisterTests.cpp")
 
 source_group("src" FILES ${M6502_SOURCES})

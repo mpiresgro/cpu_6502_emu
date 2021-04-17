@@ -9,6 +9,7 @@
 namespace cpu6502
 {
     using Byte = unsigned char;  // 8 bits
+    using sByte = signed char;  // 8 bits
     using Word = unsigned short; // 16 bits
 
     using u32 = unsigned int;
@@ -298,7 +299,17 @@ struct cpu6502::CPU
         INS_INX = 0xE8, // Increment X Register
         INS_INY = 0xC8, // Increment Y Register
         INS_DEX = 0xCA, // Decrement X Register
-        INS_DEY = 0x88; // Decrement Y Register
+        INS_DEY = 0x88, // Decrement Y Register
+
+        // Branches
+        INS_BCC = 0x90, // Branch if carry flag clear
+        INS_BCS = 0xB0, // Branch if carry flag set
+        INS_BEQ = 0xF0, // Branch if zero flag set
+        INS_BMI = 0x30, // Branch if negative flag set
+        INS_BNE = 0xD0, // Branch if zero flag clear
+        INS_BPL = 0x10, // Branch if negative flag clear
+        INS_BVC = 0x50, // Branch if overflow flag clear
+        INS_BVS = 0x70; // Branch if overflow flag set
 
     s32 Execute(s32 Cycles, Mem &memory);
 
@@ -313,4 +324,6 @@ struct cpu6502::CPU
     Word IndirectY(s32 &Cycles, Mem &memory);
 
     Word IndirectY_6(s32 &Cycles, Mem &memory);
+
+    void BranchOperation(s32 &Cycles, Byte Flag, sByte Value, char Operation);
 };
